@@ -65,12 +65,9 @@ static py::object read_as_bytes(const fsal::File& fp)
 	return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
 }
 
-static py::object read_as_numpy_ubyte(const fsal::File& fp, py::object _shape)
+void fix_shape(const py::object& _shape, size_t size, std::vector<size_t>& shape_)
 {
-	size_t size = fp.GetSize();
-
-	std::vector<size_t> shape_;
-
+	shape_.clear();
 	if (!_shape.is(py::none()))
 	{
 		auto shape = py::cast<py::tuple>(_shape);
@@ -118,8 +115,17 @@ static py::object read_as_numpy_ubyte(const fsal::File& fp, py::object _shape)
 	{
 		shape_.push_back(size);
 	}
+}
 
-	ndarray_uint8 data(shape_);
+
+static py::object read_as_numpy_ubyte(const fsal::File& fp, const py::object& _shape)
+{
+	size_t size = fp.GetSize();
+
+	std::vector<size_t> shape;
+	fix_shape(_shape, size, shape);
+
+	ndarray_uint8 data(shape);
 	void* ptr = data.request().ptr;
 	size_t retSize = -1;
 	{
@@ -184,7 +190,11 @@ PYBIND11_MODULE(_vfsdl, m)
 
 	py::class_<fsal::ArchiveReaderInterface> Archive(m, "Archive");
 		Archive.def("open", [](fsal::ArchiveReaderInterface& self, const std::string& filepath)->py::object{
-			fsal::File f = self.OpenFile(filepath);
+			fsal::File f;
+			{
+				py::gil_scoped_release release;
+				f = self.OpenFile(filepath);
+			}
 			if (f)
 			{
 				return py::cast(f);
@@ -194,6 +204,62 @@ PYBIND11_MODULE(_vfsdl, m)
 				return py::cast<py::none>(Py_None);
 			}
 		}, "Opens file")
+		.def("open_as_bytes", [](fsal::ArchiveReaderInterface& self, const std::string& filepath)->py::object
+		{
+			PyBytesObject* bytesObject = nullptr;
+			size_t size = 0;
+			{
+				py::gil_scoped_release release;
+
+				auto alloc = [&size, &bytesObject](size_t s)
+				{
+					size = s;
+					bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
+					PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
+					bytesObject->ob_shash = -1;
+					bytesObject->ob_sval[size] = '\0';
+					return bytesObject->ob_sval;
+				};
+
+				void* result = self.OpenFile(filepath, alloc);
+				if (!result)
+				{
+					PyObject_Free(bytesObject);
+					PyErr_SetString(PyExc_IOError, "Error reading file ");
+					throw py::error_already_set();
+				}
+
+			}
+
+			return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
+		})
+		.def("open_as_numpy_ubyte", [](fsal::ArchiveReaderInterface& self, const std::string& filepath, py::object _shape)
+		{
+			size_t size = 0;
+			std::vector<size_t> shape;
+			ndarray_uint8 data;
+			{
+				auto alloc = [&size, &data, &_shape, &shape](size_t s)
+				{
+					py::gil_scoped_acquire acquire;
+					size = s;
+					fix_shape(_shape, size, shape);
+					data = ndarray_uint8(shape);
+					void* ptr = data.request().ptr;
+					return ptr;
+				};
+				{
+					py::gil_scoped_release release;
+					void* result = self.OpenFile(filepath, alloc);
+					if (!result)
+					{
+						PyErr_SetString(PyExc_IOError, "Error reading file ");
+						throw py::error_already_set();
+					}
+				}
+			}
+			return data;
+		})
 		.def("exists", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
 			return self.Exists(filepath);
 		}, "Exists")

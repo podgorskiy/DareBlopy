@@ -183,26 +183,26 @@ PYBIND11_MODULE(_vfsdl, m)
 	});
 
 	py::class_<fsal::ArchiveReaderInterface> Archive(m, "Archive");
-	Archive.def("open", [](fsal::ArchiveReaderInterface& self, const std::string& filepath)->py::object{
-				fsal::File f = self.OpenFile(filepath);
-				if (f)
-				{
-					return py::cast(f);
-				}
-				else
-				{
-					return py::cast<py::none>(Py_None);
-				}
-			}, "Opens file")
-			.def("exists", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
-				return self.Exists(filepath);
-			}, "Exists")
-			.def("list_directory", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
-				return self.Exists(filepath);
-			}, "ListDirectory");
+		Archive.def("open", [](fsal::ArchiveReaderInterface& self, const std::string& filepath)->py::object{
+			fsal::File f = self.OpenFile(filepath);
+			if (f)
+			{
+				return py::cast(f);
+			}
+			else
+			{
+				return py::cast<py::none>(Py_None);
+			}
+		}, "Opens file")
+		.def("exists", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
+			return self.Exists(filepath);
+		}, "Exists")
+		.def("list_directory", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
+			return self.Exists(filepath);
+		}, "ListDirectory");
 
 	py::class_<fsal::ZipReader>(m, "ZipReader", Archive)
-			.def(py::init());
+		.def(py::init());
 
 	py::class_<fsal::FileSystem>(m, "FileSystem")
 		.def(py::init())

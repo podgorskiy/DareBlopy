@@ -4,10 +4,10 @@
 #define JPEG_LIB_VERSION  80
 
 /* libjpeg-turbo version */
-#define LIBJPEG_TURBO_VERSION  "2.0.3"
+#define LIBJPEG_TURBO_VERSION  2.0.3
 
 /* libjpeg-turbo version in integer form */
-#define LIBJPEG_TURBO_VERSION_NUMBER  @LIBJPEG_TURBO_VERSION_NUMBER@
+#define LIBJPEG_TURBO_VERSION_NUMBER  2000003
 
 /* Support arithmetic encoding */
 #define C_ARITH_CODING_SUPPORTED 1
@@ -16,7 +16,7 @@
 #define D_ARITH_CODING_SUPPORTED 1
 
 /* Support in-memory source/destination managers */
-#define MEM_SRCDST_SUPPORTED 1
+/* #undef MEM_SRCDST_SUPPORTED */
 
 /* Use accelerated SIMD routines. */
 #define WITH_SIMD 1
@@ -33,20 +33,20 @@
 #define BITS_IN_JSAMPLE  8      /* use 8 or 12 */
 
 /* Define to 1 if you have the <locale.h> header file. */
-// #cmakedefine HAVE_LOCALE_H 1
+#define HAVE_LOCALE_H 1
 
 /* Define to 1 if you have the <stddef.h> header file. */
-// #cmakedefine HAVE_STDDEF_H 1
+#define HAVE_STDDEF_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
-// #cmakedefine HAVE_STDLIB_H 1
+#define HAVE_STDLIB_H 1
 
 /* Define if you need to include <sys/types.h> to get size_t. */
-// #cmakedefine NEED_SYS_TYPES_H 1
+#define NEED_SYS_TYPES_H 1
 
 /* Define if you have BSD-like bzero and bcopy in <strings.h> rather than
    memset/memcpy in <string.h>. */
-#define NEED_BSD_STRINGS 1
+/* #undef NEED_BSD_STRINGS */
 
 /* Define to 1 if the system has the type `unsigned char'. */
 #define HAVE_UNSIGNED_CHAR 1
@@ -55,15 +55,15 @@
 #define HAVE_UNSIGNED_SHORT 1
 
 /* Compiler does not support pointers to undefined structures. */
-// #cmakedefine INCOMPLETE_TYPES_BROKEN 1
+/* #undef INCOMPLETE_TYPES_BROKEN */
 
 /* Define if your (broken) compiler shifts signed values as if they were
    unsigned. */
-// #cmakedefine RIGHT_SHIFT_IS_UNSIGNED 1
+/* #undef RIGHT_SHIFT_IS_UNSIGNED */
 
 /* Define to 1 if type `char' is unsigned and you are not using gcc.  */
 #ifndef __CHAR_UNSIGNED__
-	#define __CHAR_UNSIGNED__ 0
+/* #undef __CHAR_UNSIGNED__ */
 #endif
 
 /* Define to empty if `const' does not conform to ANSI C. */

@@ -1,7 +1,4 @@
-**Da**\ ta **Re**\ ading **Blo**\ cks for **Py**\ thon
-================================
-
-**DareBlopy** is a python module that provides variety of C++ backed data reading primitives.
+**Da**\ ta **Re**\ ading **Blo**\ cks for **Py**\ thon is a python module that provides variety of C++ backed data reading primitives.
 It targets deep-learning needs, but it is framework agnostic.
 
 Features:
@@ -13,3 +10,5 @@ Features:
 * Reading from tfrecords without tensorflow.
 
 * Mounting several zip archive to virtual file system.
+
+* Implemented fully in C++ for optimal performance.

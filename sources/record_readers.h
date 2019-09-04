@@ -24,23 +24,27 @@ public:
 		int64_t entries = -1;
 	};
 
-	RecordReader(fsal::File file);
+	explicit RecordReader(fsal::File file);
+
+	explicit RecordReader(const std::string& file);
 
 	virtual ~RecordReader() = default;
 
-	fsal::Status ReadRecord(size_t offset, fsal::MemRefFile* mem_file);
+	fsal::Status ReadRecord(size_t& offset, fsal::MemRefFile* mem_file);
 
-	fsal::Status ReadRecord(size_t offset, std::function<void*(size_t size)> alloc_func);
+	fsal::Status ReadRecord(size_t& offset, std::function<void*(size_t size)> alloc_func);
 
 	Metadata GetMetadata();
 
-	// fsal::Status GetNext();
+	fsal::Status GetNext();
+
+	fsal::Status GetNext(std::function<void*(size_t size)> alloc_func);
 
 	const fsal::MemRefFile& record() const { return m_mem_file; }
 
 	uint64_t offset() const { return m_offset; }
-private:
 
+private:
 	fsal::Status ReadChecksummed(size_t offset, size_t size, uint8_t* data);
 	fsal::MemRefFile m_mem_file;
 	uint64_t m_offset;

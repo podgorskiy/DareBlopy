@@ -18,7 +18,7 @@ inline uint32_t Unmask(uint32_t masked_crc)
 	return ((rot >> 17) | (rot << 15));
 }
 
-RecordReader::RecordReader(fsal::File file): m_file(file)
+RecordReader::RecordReader(fsal::File file): m_offset(0), m_file(std::move(file))
 {
 //	if (options.buffer_size > 0) {
 //		input_stream_.reset(new BufferedInputStream(input_stream_.release(),
@@ -40,6 +40,11 @@ RecordReader::RecordReader(fsal::File file): m_file(file)
 //	}
 }
 
+RecordReader::RecordReader(const std::string& file): m_offset(0)
+{
+	fsal::FileSystem fs;
+	m_file = fs.Open(file);
+}
 
 fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* dst)
 {
@@ -72,7 +77,7 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 }
 
 
-fsal::Status RecordReader::ReadRecord(size_t offset, fsal::MemRefFile* mem_file)
+fsal::Status RecordReader::ReadRecord(size_t& offset, fsal::MemRefFile* mem_file)
 {
 	m_file.Seek(offset);
 
@@ -91,7 +96,7 @@ fsal::Status RecordReader::ReadRecord(size_t offset, fsal::MemRefFile* mem_file)
 	return fsal::Status::Succeeded();
 }
 
-fsal::Status RecordReader::ReadRecord(size_t offset, std::function<void*(size_t size)> alloc_func)
+fsal::Status RecordReader::ReadRecord(size_t& offset, std::function<void*(size_t size)> alloc_func)
 {
 	m_file.Seek(offset);
 
@@ -108,6 +113,18 @@ fsal::Status RecordReader::ReadRecord(size_t offset, std::function<void*(size_t 
 	offset += sizeof(RecordHeader) + header.length + sizeof(uint32_t);
 	assert(offset == m_file.Tell());
 	return fsal::Status::Succeeded();
+}
+
+fsal::Status RecordReader::GetNext()
+{
+	fsal::Status s = ReadRecord(m_offset, &m_mem_file);
+	return s;
+}
+
+fsal::Status RecordReader::GetNext(std::function<void*(size_t size)> alloc_func)
+{
+	fsal::Status s = ReadRecord(m_offset, std::move(alloc_func));
+	return s;
 }
 
 RecordReader::Metadata RecordReader::GetMetadata()

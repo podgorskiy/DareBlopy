@@ -138,25 +138,7 @@ static py::object read_jpg_as_numpy(const fsal::File& fp, bool use_turbo)
 	size_t retSize = 0;
 	void* data = nullptr;
 	{
-		py::gil_scoped_release release;//
-//struct FixedLenFeature
-//{
-//	std::string key;
-//	DataType dtype;
-//	TensorShape shape;
-//	Tensor default_value;
-//	std::string values_output_tensor_name;
-//};
-//
-//struct VarLenFeature
-//{
-//	std::string key;
-//	DataType dtype;
-//	std::string values_output_tensor_name;
-//	std::string indices_output_tensor_name;
-//	std::string shapes_output_tensor_name;
-//};
-
+		py::gil_scoped_release release;
 		data = malloc(size);
 		fp.Read((uint8_t*)data, size, &retSize);
 	}
@@ -171,10 +153,23 @@ static py::object read_jpg_as_numpy(const fsal::File& fp, bool use_turbo)
 	}
 }
 
-
-PYBIND11_MODULE(_vfsdl, m)
+std::function<void*(size_t)> GetBytesAllocator(PyBytesObject*& bytesObject)
 {
-	m.doc() = "vfsdl - VirtualFSDataLoader";
+	auto alloc = [&bytesObject](size_t size)
+	{
+		bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
+		size -= sizeof(uint32_t);
+		PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
+		bytesObject->ob_shash = -1;
+		bytesObject->ob_sval[size] = '\0';
+		return bytesObject->ob_sval;
+	};
+	return alloc;
+}
+
+PYBIND11_MODULE(_dareblopy, m)
+{
+	m.doc() = "_dareblopy - DareBlopy";
 
 	py::enum_<Records::DataType>(m, "DataType", py::arithmetic())
 			.value("string", Records::DataType::DT_STRING)
@@ -185,25 +180,14 @@ PYBIND11_MODULE(_vfsdl, m)
 
 	py::class_<RecordReader>(m, "RecordReader")
 			.def(py::init<fsal::File>())
-			.def("read_record", [](RecordReader& self, size_t offset)->py::object
+			.def(py::init<const std::string&>())
+			.def("read_record", [](RecordReader& self, size_t& offset)->py::object
 			{
 				PyBytesObject* bytesObject = nullptr;
-				size_t size = 0;
 				{
 					py::gil_scoped_release release;
 
-					auto alloc = [&size, &bytesObject](size_t s)
-					{
-						size = s;
-						bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
-						size -= sizeof(uint32_t);
-						PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
-						bytesObject->ob_shash = -1;
-						bytesObject->ob_sval[size] = '\0';
-						return bytesObject->ob_sval;
-					};
-
-					fsal::Status result = self.ReadRecord(offset, alloc);
+					fsal::Status result = self.ReadRecord(offset, GetBytesAllocator(bytesObject));
 					if (!result.ok())
 					{
 						PyObject_Free(bytesObject);
@@ -212,36 +196,42 @@ PYBIND11_MODULE(_vfsdl, m)
 				}
 
 				return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
+			})
+			.def("__iter__", [](py::object& self)->py::object
+			{
+				return self;
+			})
+			.def("__next__", [](RecordReader& self)->py::object
+			{
+				PyBytesObject* bytesObject = nullptr;
+				auto status = self.GetNext(GetBytesAllocator(bytesObject));
+				if (!status.ok())
+				{
+					if (status.state == fsal::Status::kEOF)
+					{
+						throw py::stop_iteration();
+					}
+					else
+					{
+						throw runtime_error("Error while iterating RecordReader at offset: %zd", self.offset());
+					}
+				}
+				return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
 			});
 
-	py::class_<Records::FixedLenFeature>(m, "FixedLenFeature")
+	py::class_<Records::RecordParser::FixedLenFeature>(m, "FixedLenFeature")
 			.def(py::init())
 			.def(py::init<std::vector<size_t>, Records::DataType>())
 			.def(py::init<std::vector<size_t>, Records::DataType, py::object>())
-			.def_readwrite("shape", &Records::FixedLenFeature::shape)
-			.def_readwrite("dtype", &Records::FixedLenFeature::dtype)
-			.def_readwrite("default_value", &Records::FixedLenFeature::default_value);
+			.def_readwrite("shape", &Records::RecordParser::FixedLenFeature::shape)
+			.def_readwrite("dtype", &Records::RecordParser::FixedLenFeature::dtype)
+			.def_readwrite("default_value", &Records::RecordParser::FixedLenFeature::default_value);
 
 	py::class_<Records::RecordParser>(m, "RecordParser")
 			.def(py::init<py::dict>())
-			.def("parse_single_example", &Records::RecordParser::ParseSingleExample);
-
-	m.def("test", [](const char* filename)
-	{
-		py::gil_scoped_release release;
-
-		fsal::StdFile tmp_std;
-		fsal::File fp;
-		{
-			fp = openfile(filename, tmp_std);
-		}
-		RecordReader rr(fp);
-		fsal::MemRefFile memfile;
-		rr.ReadRecord(0, &memfile);
-
-		//ParseExample(&memfile);
-		rr.GetMetadata();
-	});
+			.def("parse_single_example_impl", &Records::RecordParser::ParseSingleExampleImpl)
+			.def("parse_single_example", &Records::RecordParser::ParseSingleExample)
+			.def("parse_example", &Records::RecordParser::ParseExample);
 
 	m.def("open_as_bytes", [](const char* filename)
 	{
@@ -320,17 +310,7 @@ PYBIND11_MODULE(_vfsdl, m)
 			{
 				py::gil_scoped_release release;
 
-				auto alloc = [&size, &bytesObject](size_t s)
-				{
-					size = s;
-					bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
-					PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
-					bytesObject->ob_shash = -1;
-					bytesObject->ob_sval[size] = '\0';
-					return bytesObject->ob_sval;
-				};
-
-				void* result = self.OpenFile(filepath, alloc);
+				void* result = self.OpenFile(filepath, GetBytesAllocator(bytesObject));
 				if (!result)
 				{
 					PyObject_Free(bytesObject);

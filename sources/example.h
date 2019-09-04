@@ -3,59 +3,6 @@
 #include "MemRefFile.h"
 #include "common.h"
 
-//
-//typedef void (PyArray_VectorUnaryFunc)(void *, void *, ssize_t, void *, void *);
-//typedef PyObject * (PyArray_GetItemFunc) (void *, void *);
-//typedef int (PyArray_SetItemFunc)(PyObject *, void *, void *);
-//
-//#define NPY_NTYPES_ABI_COMPATIBLE 21
-//
-//struct PyArray_ArrFuncs
-//{
-//	PyArray_VectorUnaryFunc *cast[NPY_NTYPES_ABI_COMPATIBLE];
-//	PyArray_GetItemFunc *getitem;
-//	PyArray_SetItemFunc *setitem;
-//} ;
-//
-//struct PyArrayDescr_Proxy {
-//	PyObject_HEAD
-//	PyObject *typeobj;
-//	char kind;
-//	char type;
-//	char byteorder;
-//	char flags;
-//	int type_num;
-//	int elsize;
-//	int alignment;
-//	char *subarray;
-//	PyObject *fields;
-//	PyObject *names;
-//	PyArray_ArrFuncs *f;
-//};
-//
-//struct PyArrayObject_Proxy
-//{
-//	PyObject_HEAD
-//	char *data;
-//	int nd;
-//	ssize_t *dimensions;
-//	ssize_t *strides;
-//	PyObject *base;
-//	PyArrayDescr_Proxy *descr;
-//	int flags;
-//	PyObject *weakreflist;
-//};
-//
-//
-//#define PyArray_DESCR(obj) (((PyArrayObject_Proxy *)(obj))->descr)
-//
-//#define PyArray_DATA(obj) ((void *)((PyArrayObject_Proxy *)(obj))->data)
-//
-//#define PyArray_SETITEM(obj,itemptr,v) \
-//        PyArray_DESCR(obj)->f->setitem((PyObject *)(v), \
-//                                     (char *)(itemptr), \
-//									 (PyArrayObject_Proxy *)(obj))
-
 namespace Records
 {
 	enum class DataType
@@ -96,24 +43,6 @@ namespace Records
 		}
 		return num;
 	}
-
-	struct FixedLenFeature
-	{
-		FixedLenFeature() = default;
-
-		FixedLenFeature(const TensorShape& shape, DataType dtype): dtype(dtype), shape(shape)
-		{
-		}
-
-		FixedLenFeature(const TensorShape& shape, DataType dtype, py::object default_value): dtype(dtype), shape(shape), default_value(default_value)
-		{
-		}
-
-		std::string key;
-		TensorShape shape;
-		DataType dtype;
-		py::object default_value;
-	};
 
 	DataType Feature2DataType(Feature feature)
 	{
@@ -236,10 +165,61 @@ namespace Records
 		}
 	}
 
+	py::object TensorFactory(DataType dtype, const TensorShape& shape)
+	{
+		switch (dtype)
+		{
+			case DataType::DT_INT64:
+			{
+				return ndarray_int64(shape);
+			}
+			case DataType::DT_FLOAT:
+			{
+				return ndarray_float32(shape);
+			}
+			case DataType::DT_UINT8:
+			{
+				return ndarray_uint8(shape);
+			}
+			case DataType::DT_STRING:
+			{
+				if (shape.size() == 0)
+				{
+					return ndarray_object({1});
+				}
+
+				return ndarray_object(shape);
+			}
+			case DataType::DT_INVALID:
+			default:
+			{
+				throw runtime_error("Invalid input dtype: %s", DataTypeString(dtype));
+			}
+		}
+	}
+
 	class RecordParser
 	{
 	public:
-		RecordParser(const py::dict& features)
+		struct FixedLenFeature
+		{
+			FixedLenFeature() = default;
+
+			FixedLenFeature(const TensorShape& shape, DataType dtype): dtype(dtype), shape(shape)
+			{
+			}
+
+			FixedLenFeature(const TensorShape& shape, DataType dtype, py::object default_value): dtype(dtype), shape(shape), default_value(default_value)
+			{
+			}
+
+			std::string key;
+			TensorShape shape;
+			DataType dtype;
+			py::object default_value;
+		};
+
+		explicit RecordParser(const py::dict& features)
 		{
 			for (auto item : features)
 			{
@@ -250,7 +230,7 @@ namespace Records
 			}
 		}
 
-		void ParseSingleExample(const std::string& serialized, std::vector<py::object>& output)
+		void ParseSingleExampleImpl(const std::string& serialized, std::vector<py::object>& output, int batch_index)
 		{
 			Example example;
 			//example.ParseFromArray(file->GetDataPointer(), file->GetSize());
@@ -295,7 +275,7 @@ namespace Records
 						        key.c_str(), DataTypeString(dtype), f.DebugString().c_str());
 
 					}
-					FeatureDecode(0, key, dtype, shape, f, output[d]);
+					FeatureDecode(batch_index, key, dtype, shape, f, output[d]);
 				} else {
 					// If the value is missing, RowDenseCopy the default value.
 //					RowDenseCopy(batch_index, dtype, default_value,
@@ -304,35 +284,7 @@ namespace Records
 			}
 		}
 
-		py::object TensorFactory(DataType dtype, const TensorShape& shape)
-		{
-			switch (dtype)
-			{
-				case DataType::DT_INT64:
-				{
-					return ndarray_int64(shape);
-				}
-				case DataType::DT_FLOAT:
-				{
-					return ndarray_float32(shape);
-				}
-				case DataType::DT_UINT8:
-				{
-					return ndarray_uint8(shape);
-				}
-				case DataType::DT_STRING:
-				{
-					return ndarray_object(shape);
-				}
-				case DataType::DT_INVALID:
-				default:
-				{
-					throw runtime_error("Invalid input dtype: %s", DataTypeString(dtype));
-				}
-			}
-		}
-
-		std::vector<py::object> ParseExample(std::vector<std::string> serialized)
+		std::vector<py::object> ParseExample(const std::vector<std::string>& serialized)
 		{
 			std::vector<py::object> tensors;
 			tensors.reserve(fixed_len_features.size());
@@ -344,6 +296,26 @@ namespace Records
 				out_shape[0] = serialized.size();
 				tensors.push_back(TensorFactory(feature_config.dtype, out_shape));
 			}
+
+			for (int i = 0, l = serialized.size(); i < l; ++i)
+			{
+				ParseSingleExampleImpl(serialized[i], tensors, i);
+			}
+			return tensors;
+		}
+
+		std::vector<py::object> ParseSingleExample(const std::string& serialized)
+		{
+			std::vector<py::object> tensors;
+			tensors.reserve(fixed_len_features.size());
+
+			for (const auto& feature_config: fixed_len_features)
+			{
+				tensors.push_back(TensorFactory(feature_config.dtype, feature_config.shape));
+			}
+
+			ParseSingleExampleImpl(serialized, tensors, 0);
+			return tensors;
 		}
 	private:
 		std::vector<FixedLenFeature> fixed_len_features;

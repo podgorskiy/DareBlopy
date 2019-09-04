@@ -1,4 +1,4 @@
-**Da**ta **Re**ading **Blo**cks for **Py**thon
+**Da**\ ta **Re**\ ading **Blo**\ cks for **Py**\ thon
 ================================
 
 **DareBlopy** is a python module that provides variety of C++ backed data reading primitives.

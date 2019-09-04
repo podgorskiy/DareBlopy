@@ -16,3 +16,12 @@
 [submodule "libwebp"]
 	path = libwebp
 	url = https://github.com/webmproject/libwebp.git
+[submodule "libjpeg"]
+	path = libjpeg
+	url = https://github.com/LuaDist/libjpeg.git
+[submodule "protobuf"]
+	path = protobuf
+	url = https://github.com/protocolbuffers/protobuf.git
+[submodule "crc32c"]
+	path = crc32c
+	url = https://github.com/google/crc32c.git

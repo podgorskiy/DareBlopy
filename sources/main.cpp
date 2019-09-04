@@ -3,11 +3,11 @@
  * License: https://raw.githubusercontent.com/podgorskiy/bimpy/master/LICENSE.txt
  */
 
-#include <pybind11/pybind11.h>
+#include "common.h"
+
 #include <pybind11/operators.h>
 #include <pybind11/functional.h>
 #include <pybind11/stl.h>
-#include <pybind11/numpy.h>
 #include <memory>
 #include <mutex>
 #include <fsal.h>
@@ -17,13 +17,13 @@
 #ifdef __linux
 #include <sys/stat.h>
 #endif
-#include <jpeglib.h>
-#include <setjmp.h>
 
-namespace py = pybind11;
+#include "jpeg_decoder.h"
+#include "protobuf/example.pb.h"
 
-typedef py::array_t<uint8_t, py::array::c_style> ndarray_uint8;
-typedef py::array_t<float, py::array::c_style> ndarray_float32;
+#include "record_readers.h"
+#include "example.h"
+
 
 int main()
 {
@@ -36,10 +36,7 @@ static fsal::File openfile(const char* filename, fsal::StdFile& tmp_std)
 	auto fp = std::fopen(filename, "rb");
 	if (!fp)
 	{
-		std::stringstream ss;
-		ss << "No such file " << filename;
-		PyErr_SetString(PyExc_IOError, ss.str().c_str());
-		throw py::error_already_set();
+		throw runtime_error("No such file %s", filename);
 	}
 	tmp_std.AssignFile(fp);
 	return fsal::File(&tmp_std, fsal::File::borrow{});
@@ -60,8 +57,7 @@ static py::object read_as_bytes(const fsal::File& fp)
 
 	if (retSize != size)
 	{
-		PyErr_SetString(PyExc_IOError, "Error reading file ");
-		throw py::error_already_set();
+		throw runtime_error("Error reading file. Expected to read %zd bytes, but read only %zd", size, retSize);
 	}
 
 	return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
@@ -83,10 +79,7 @@ void fix_shape(const py::object& _shape, size_t size, std::vector<size_t>& shape
 			{
 				if (has_minus)
 				{
-					std::stringstream ss;
-					ss << "Invalid shape ";
-					PyErr_SetString(PyExc_IOError, ss.str().c_str());
-					throw py::error_already_set();
+					throw runtime_error("Invalid shape. Can not have more than one unspecified dimention");
 				}
 				has_minus = true;
 				minus_id = i;
@@ -106,10 +99,8 @@ void fix_shape(const py::object& _shape, size_t size, std::vector<size_t>& shape
 			}
 			else
 			{
-				std::stringstream ss;
-				ss << "Can't reshape";
-				PyErr_SetString(PyExc_IOError, ss.str().c_str());
-				throw py::error_already_set();
+				throw runtime_error("Can't reshape. Total number of elements is %zd and it is not divisible by "
+						"specified shape %zd", size, mul);
 			}
 		}
 	}
@@ -136,92 +127,121 @@ static py::object read_as_numpy_ubyte(const fsal::File& fp, const py::object& _s
 	}
 	if (retSize != size)
 	{
-		PyErr_SetString(PyExc_IOError, "Error reading file ");
-		throw py::error_already_set();
+		throw runtime_error("Error reading file. Expected to read %zd bytes, but read only %zd", size, retSize);
 	}
 	return data;
 }
 
-struct my_error_mgr {
-		struct jpeg_error_mgr pub;
-		jmp_buf setjmp_buffer;
-		void (*emit_message) (j_common_ptr, int);
-		boolean warning, stopOnWarning;
-};
-
-static py::object read_jpg_as_numpy(const fsal::File& fp)
+static py::object read_jpg_as_numpy(const fsal::File& fp, bool use_turbo)
 {
 	size_t size = fp.GetSize();
 	size_t retSize = 0;
 	void* data = nullptr;
 	{
-		py::gil_scoped_release release;
+		py::gil_scoped_release release;//
+//struct FixedLenFeature
+//{
+//	std::string key;
+//	DataType dtype;
+//	TensorShape shape;
+//	Tensor default_value;
+//	std::string values_output_tensor_name;
+//};
+//
+//struct VarLenFeature
+//{
+//	std::string key;
+//	DataType dtype;
+//	std::string values_output_tensor_name;
+//	std::string indices_output_tensor_name;
+//	std::string shapes_output_tensor_name;
+//};
+
 		data = malloc(size);
 		fp.Read((uint8_t*)data, size, &retSize);
 	}
 
-	struct jpeg_decompress_struct cinfo;
-	struct my_error_mgr jerr;
-	JSAMPARRAY buffer;		/* Output row buffer */
-	int row_stride;		/* physical row width in output buffer */
-	cinfo.err = jpeg_std_error(&jerr.pub);
-
-	if (setjmp(jerr.setjmp_buffer))
+	if (use_turbo)
 	{
-		/* If we get here, the JPEG code has signaled an error.
-		 * We need to clean up the JPEG object, close the input file, and return.
-		 */
-		jpeg_destroy_decompress(&cinfo);
-		PyErr_SetString(PyExc_IOError, "Error reading file ");
-		throw py::error_already_set();
+		return decode_jpeg_turbo(data, size);
 	}
-	/* Now we can initialize the JPEG decompression object. */
-	jpeg_create_decompress(&cinfo);
-	/* Step 2: specify data source (eg, a file) */
-	jpeg_mem_src(&cinfo, (const unsigned char*)data, size);
-	/* Step 3: read file parameters with jpeg_read_header() */
-	(void) jpeg_read_header(&cinfo, TRUE);
-	/* Step 5: Start decompressor */
-	(void) jpeg_start_decompress(&cinfo);
-
-	/* We may need to do some setup of our own at this point before reading
-	 * the data.  After jpeg_start_decompress() we have the correct scaled
-	 * output image dimensions available, as well as the output colormap
-	 * if we asked for color quantization.
-	 * In this example, we need to make an output work buffer of the right size.
-	 */
-	/* JSAMPLEs per row in output buffer */
-	row_stride = cinfo.output_width * cinfo.output_components;
-	/* Make a one-row-high sample array that will go away when done with image */
-
-	std::array<size_t, 3> shape = {cinfo.output_height, cinfo.output_width, 3};
-	ndarray_uint8 ar(shape);
-	unsigned char* ptr = (unsigned char*)ar.request().ptr;
-	//buffer = (*cinfo.mem->alloc_sarray)
-	//		((j_common_ptr) &cinfo, JPOOL_IMAGE, row_stride, 1);
-
-	int i = 0;
-	while (cinfo.output_scanline < cinfo.output_height) {
-		/* jpeg_read_scanlines expects an array of pointers to scanlines.
-		 * Here the array is only one element long, but you could ask for
-		 * more than one scanline at a time if that's more convenient.
-		 */
-		unsigned char* p = (ptr + row_stride * i);
-		(void) jpeg_read_scanlines(&cinfo, &p, 1);
-		++i;
-		/* Assume put_scanline_someplace wants a pointer and sample count. */
-		//put_scanline_someplace(buffer[0], row_stride);
+	else
+	{
+		return decode_jpeg_vanila(data, size);
 	}
-	(void) jpeg_finish_decompress(&cinfo);
-	jpeg_destroy_decompress(&cinfo);
-
-	return ar;
 }
 
 
 PYBIND11_MODULE(_vfsdl, m)
 {
 	m.doc() = "vfsdl - VirtualFSDataLoader";
+
+	py::enum_<Records::DataType>(m, "DataType", py::arithmetic())
+			.value("string", Records::DataType::DT_STRING)
+			.value("float32", Records::DataType::DT_FLOAT)
+			.value("int64", Records::DataType::DT_INT64)
+			.value("uint8", Records::DataType::DT_UINT8)
+			.export_values();
+
+	py::class_<RecordReader>(m, "RecordReader")
+			.def(py::init<fsal::File>())
+			.def("read_record", [](RecordReader& self, size_t offset)->py::object
+			{
+				PyBytesObject* bytesObject = nullptr;
+				size_t size = 0;
+				{
+					py::gil_scoped_release release;
+
+					auto alloc = [&size, &bytesObject](size_t s)
+					{
+						size = s;
+						bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
+						size -= sizeof(uint32_t);
+						PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
+						bytesObject->ob_shash = -1;
+						bytesObject->ob_sval[size] = '\0';
+						return bytesObject->ob_sval;
+					};
+
+					fsal::Status result = self.ReadRecord(offset, alloc);
+					if (!result.ok())
+					{
+						PyObject_Free(bytesObject);
+						throw runtime_error("Error reading record at offset %zd", offset);
+					}
+				}
+
+				return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
+			});
+
+	py::class_<Records::FixedLenFeature>(m, "FixedLenFeature")
+			.def(py::init())
+			.def(py::init<std::vector<size_t>, Records::DataType>())
+			.def(py::init<std::vector<size_t>, Records::DataType, py::object>())
+			.def_readwrite("shape", &Records::FixedLenFeature::shape)
+			.def_readwrite("dtype", &Records::FixedLenFeature::dtype)
+			.def_readwrite("default_value", &Records::FixedLenFeature::default_value);
+
+	py::class_<Records::RecordParser>(m, "RecordParser")
+			.def(py::init<py::dict>())
+			.def("parse_single_example", &Records::RecordParser::ParseSingleExample);
+
+	m.def("test", [](const char* filename)
+	{
+		py::gil_scoped_release release;
+
+		fsal::StdFile tmp_std;
+		fsal::File fp;
+		{
+			fp = openfile(filename, tmp_std);
+		}
+		RecordReader rr(fp);
+		fsal::MemRefFile memfile;
+		rr.ReadRecord(0, &memfile);
+
+		//ParseExample(&memfile);
+		rr.GetMetadata();
+	});
 
 	m.def("open_as_bytes", [](const char* filename)
 	{
@@ -242,7 +262,7 @@ PYBIND11_MODULE(_vfsdl, m)
 		return read_as_numpy_ubyte(fp, shape);
 	},  py::arg("filename"),  py::arg("shape").none(true) = py::none());
 
-	m.def("read_jpg_as_numpy", [](const char* filename)
+	m.def("read_jpg_as_numpy", [](const char* filename, bool use_turbo)
 	{
 		fsal::StdFile tmp_std;
 		fsal::File fp;
@@ -250,8 +270,8 @@ PYBIND11_MODULE(_vfsdl, m)
 			py::gil_scoped_release release;
 			fp = openfile(filename, tmp_std);
 		}
-		return read_jpg_as_numpy(fp);
-	},  py::arg("filename"));
+		return read_jpg_as_numpy(fp, use_turbo);
+	},  py::arg("filename"),  py::arg("use_turbo") = false);
 
 	py::enum_<fsal::Mode>(m, "Mode", py::arithmetic())
 		.value("read", fsal::Mode::kRead)
@@ -314,8 +334,7 @@ PYBIND11_MODULE(_vfsdl, m)
 				if (!result)
 				{
 					PyObject_Free(bytesObject);
-					PyErr_SetString(PyExc_IOError, "Error reading file ");
-					throw py::error_already_set();
+					throw runtime_error("Can't open file: %s", filepath.c_str());
 				}
 
 			}
@@ -342,13 +361,36 @@ PYBIND11_MODULE(_vfsdl, m)
 					void* result = self.OpenFile(filepath, alloc);
 					if (!result)
 					{
-						PyErr_SetString(PyExc_IOError, "Error reading file ");
-						throw py::error_already_set();
+						throw runtime_error("Can't open file: %s", filepath.c_str());
 					}
 				}
 			}
 			return data;
 		})
+		.def("read_jpg_as_numpy", [](fsal::ArchiveReaderInterface& self, const std::string& filepath, bool use_turbo)
+		{
+			size_t size = 0;
+			fsal::File f;
+			void* data;
+			{
+				py::gil_scoped_release release;
+				f = self.OpenFile(filepath);
+				if (!f)
+				{
+					throw runtime_error("Can't open file: %s", filepath.c_str());
+				}
+				size = f.GetSize();
+				data = f.GetDataPointer();
+			}
+			if (use_turbo)
+			{
+				return decode_jpeg_turbo(data, size);
+			}
+			else
+			{
+				return decode_jpeg_vanila(data, size);
+			}
+		},  py::arg("filename"),  py::arg("use_turbo") = false)
 		.def("exists", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
 			return self.Exists(filepath);
 		}, "Exists")

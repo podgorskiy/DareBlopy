@@ -306,7 +306,6 @@ PYBIND11_MODULE(_dareblopy, m)
 		.def("open_as_bytes", [](fsal::ArchiveReaderInterface& self, const std::string& filepath)->py::object
 		{
 			PyBytesObject* bytesObject = nullptr;
-			size_t size = 0;
 			{
 				py::gil_scoped_release release;
 

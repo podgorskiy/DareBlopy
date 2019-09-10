@@ -229,9 +229,12 @@ PYBIND11_MODULE(_dareblopy, m)
 
 	py::class_<Records::RecordParser>(m, "RecordParser")
 			.def(py::init<py::dict>())
+			.def(py::init<py::dict, bool>())
 			.def("parse_single_example_impl", &Records::RecordParser::ParseSingleExampleImpl)
+			.def("parse_single_example_ptr", &Records::RecordParser::ParseSingleExamplePtr)
 			.def("parse_single_example", &Records::RecordParser::ParseSingleExample)
-			.def("parse_example", &Records::RecordParser::ParseExample);
+			.def("parse_example", &Records::RecordParser::ParseExample)
+			.def("parse_example_ptr", &Records::RecordParser::ParseExamplePtr);
 
 	m.def("open_as_bytes", [](const char* filename)
 	{

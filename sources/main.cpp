@@ -22,6 +22,7 @@
 #include "protobuf/example.pb.h"
 
 #include "record_readers.h"
+#include "record_yielder.h"
 #include "example.h"
 
 
@@ -153,20 +154,6 @@ static py::object read_jpg_as_numpy(const fsal::File& fp, bool use_turbo)
 	}
 }
 
-std::function<void*(size_t)> GetBytesAllocator(PyBytesObject*& bytesObject)
-{
-	auto alloc = [&bytesObject](size_t size)
-	{
-		bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
-		size -= sizeof(uint32_t);
-		PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
-		bytesObject->ob_shash = -1;
-		bytesObject->ob_sval[size] = '\0';
-		return bytesObject->ob_sval;
-	};
-	return alloc;
-}
-
 PYBIND11_MODULE(_dareblopy, m)
 {
 	m.doc() = "_dareblopy - DareBlopy";
@@ -230,11 +217,28 @@ PYBIND11_MODULE(_dareblopy, m)
 	py::class_<Records::RecordParser>(m, "RecordParser")
 			.def(py::init<py::dict>())
 			.def(py::init<py::dict, bool>())
-			.def("parse_single_example_impl", &Records::RecordParser::ParseSingleExampleImpl)
-			.def("parse_single_example_ptr", &Records::RecordParser::ParseSingleExamplePtr)
+			.def(py::init<py::dict, bool, int>())
+			.def("parse_single_example_inplace", &Records::RecordParser::ParseSingleExampleInplace)
 			.def("parse_single_example", &Records::RecordParser::ParseSingleExample)
-			.def("parse_example", &Records::RecordParser::ParseExample)
-			.def("parse_example_ptr", &Records::RecordParser::ParseExamplePtr);
+			.def("parse_example", &Records::RecordParser::ParseExample);
+
+	py::class_<RecordYielderBasic>(m, "RecordYielderBasic")
+			.def(py::init<std::vector<std::string>&>())
+			.def("__iter__", [](py::object& self)->py::object
+			{
+				return self;
+			})
+			.def("__next__", &RecordYielderBasic::GetNext)
+	        .def("next_n", &RecordYielderBasic::GetNextN);
+
+	py::class_<RecordYielderRandomized>(m, "RecordYielderRandomized")
+			.def(py::init<std::vector<std::string>&, int, int, int>())
+			.def("__iter__", [](py::object& self)->py::object
+			{
+				return self;
+			})
+			.def("__next__", &RecordYielderRandomized::GetNext)
+			.def("next_n", &RecordYielderRandomized::GetNextN);
 
 	m.def("open_as_bytes", [](const char* filename)
 	{

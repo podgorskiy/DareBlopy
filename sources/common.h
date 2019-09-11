@@ -74,3 +74,19 @@ public:
 private:
 	va_list ap;
 };
+
+
+inline std::function<void*(size_t)> GetBytesAllocator(PyBytesObject*& bytesObject)
+{
+	auto alloc = [&bytesObject](size_t size)
+	{
+		bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
+		size -= sizeof(uint32_t);
+		PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
+		bytesObject->ob_shash = -1;
+		bytesObject->ob_sval[size] = '\0';
+		return bytesObject->ob_sval;
+	};
+	return alloc;
+}
+

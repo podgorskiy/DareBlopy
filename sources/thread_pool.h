@@ -27,7 +27,7 @@ private:
 	void SetWorkerCount(int count);
 	void TerminateAll();
 
-	threadIdx PopTaskFromQueue();
+	threadIdx PopTaskFromQueue(int local_size);
 
 	bool m_terminating;
 	std::atomic<int> m_activeWorkers;

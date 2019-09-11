@@ -274,7 +274,7 @@ extra_compile_c_args = {
 extra_compile_asm_args = ['-DELF', '-D__x86_64__', '-DPIC', '-DTURBO', '-g', '-f elf64', '-Ox']
 
 extension = Extension("_dareblopy",
-                      jpeg_turbo_simd + fsal + crc32c + zlib + protobuf + dareblopy + jpeg_turbo + jpeg_vanila,
+                      jpeg_turbo + jpeg_vanila + jpeg_turbo_simd + dareblopy + fsal + crc32c + zlib + protobuf,
                              define_macros = definitions[target_os],
                              include_dirs=[
                                  "zlib",

@@ -52,39 +52,3 @@ private:
 	fsal::File m_file;
 	Metadata m_metadata;
 };
-
-//
-//class SequentialRecordReader {
-//public:
-//	// Create a reader that will return log records from "*file".
-//	// "*file" must remain live while this Reader is in use.
-//	explicit SequentialRecordReader(
-//			RandomAccessFile* file,
-//			const RecordReaderOptions& options = RecordReaderOptions());
-//
-//	virtual ~SequentialRecordReader() = default;
-//
-//	// Reads the next record in the file into *record. Returns OK on success,
-//	// OUT_OF_RANGE for end of file, or something else for an error.
-//	Status ReadRecord(tstring* record) {
-//		return underlying_.ReadRecord(&offset_, record);
-//	}
-//
-//	// Returns the current offset in the file.
-//	uint64 TellOffset() { return offset_; }
-//
-//	// Seek to this offset within the file and set this offset as the current
-//	// offset. Trying to seek backward will throw error.
-//	Status SeekOffset(uint64 offset) {
-//		if (offset < offset_)
-//			return errors::InvalidArgument(
-//					"Trying to seek offset: ", offset,
-//					" which is less than the current offset: ", offset_);
-//		offset_ = offset;
-//		return Status::OK();
-//	}
-//
-//private:
-//	RecordReader underlying_;
-//	uint64 offset_ = 0;
-//};

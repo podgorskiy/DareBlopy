@@ -3,9 +3,11 @@
 
 void ThreadPool::Worker()
 {
+	int local_size = 8;
+
 	while (!m_terminating)
 	{
-		threadIdx task = PopTaskFromQueue();
+		threadIdx task = PopTaskFromQueue(local_size);
 
 		if (m_terminating)
 		{
@@ -18,7 +20,10 @@ void ThreadPool::Worker()
 			return;
 		}
 
-		(*m_kernel)(task, m_blockDim);
+		for (int i = 0; i < local_size && task + i < m_blockDim; ++i)
+		{
+			(*m_kernel)(task + i, m_blockDim);
+		}
 
 		--m_activeWorkers;
 		if (m_activeWorkers == 0 && m_tasksWaiting == m_blockDim)
@@ -28,7 +33,7 @@ void ThreadPool::Worker()
 	}
 }
 
-ThreadPool::threadIdx ThreadPool::PopTaskFromQueue()
+ThreadPool::threadIdx ThreadPool::PopTaskFromQueue(int local_size)
 {
 	std::unique_lock<std::mutex> locker(m_queueLock);
 
@@ -45,7 +50,7 @@ ThreadPool::threadIdx ThreadPool::PopTaskFromQueue()
 	++m_activeWorkers;
 
 	threadIdx task = m_tasksWaiting;
-	++m_tasksWaiting;
+	m_tasksWaiting = std::min(m_tasksWaiting + local_size, m_blockDim);
 	return task;
 }
 

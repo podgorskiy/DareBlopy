@@ -148,7 +148,7 @@ elseif(APPLE)
 else()
     set(COMMON_OPTIONS -DHAVE_PTHREAD  -lstdc++fs)
     set(DEBUG_OPTIONS -g)
-    set(RELEASE_OPTIONS -O3)
+    set(RELEASE_OPTIONS -O2)
 endif()
 
 set(DEBUG_OPTIONS ${DEBUG_OPTIONS} ${COMMON_OPTIONS})

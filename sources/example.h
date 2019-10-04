@@ -18,10 +18,10 @@ namespace Records
 
 	typedef std::vector<size_t> TensorShape;
 
-	class RecordParser
+	class HIDDEN RecordParser
 	{
 	public:
-		struct FixedLenFeature
+		struct HIDDEN FixedLenFeature
 		{
 			FixedLenFeature() = default;
 
@@ -43,9 +43,9 @@ namespace Records
 
 		void ParseSingleExampleInplace(const std::string& serialized, std::vector<py::object>& output, int batch_index);
 
-		std::vector<py::object> ParseExample(const std::vector<std::string>& serialized);
+		py::list ParseExample(const std::vector<std::string>& serialized);
 
-		std::vector<py::object> ParseSingleExample(const std::string& serialized);
+		py::list ParseSingleExample(const std::string& serialized);
 	private:
 		void ParseSingleExampleImpl(const std::string& serialized, std::vector<void*>& output, int batch_index);
 

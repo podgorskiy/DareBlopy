@@ -1,5 +1,6 @@
 #pragma once
 #include "record_readers.h"
+#include "example.h"
 #include <vector>
 #include <string>
 #include <random>
@@ -10,7 +11,7 @@
 #include <condition_variable>
 
 
-class RecordYielderBasic
+class HIDDEN RecordYielderBasic
 {
 public:
 	explicit RecordYielderBasic(std::vector<std::string>& filenames)
@@ -54,10 +55,9 @@ public:
 		return py::reinterpret_steal<py::object>((PyObject*) bytesObject);
 	}
 
-	std::vector<py::object> GetNextN(int n)
+	py::list GetNextN(int n)
 	{
-		std::vector<py::object> batch;
-		batch.reserve(n);
+		py::list batch;
 		for (int i = 0; i < n; ++i)
 		{
 			while (true)
@@ -97,11 +97,11 @@ public:
 					}
 				}
 				py::object value = py::reinterpret_steal<py::object>((PyObject*) bytesObject);
-				batch.push_back(std::move(value));
+				batch.append(std::move(value));
 				break;
 			}
 		}
-		return batch;
+		return std::move(batch);
 	}
 
 private:
@@ -111,14 +111,14 @@ private:
 };
 
 
-class RecordYielderRandomized
+class HIDDEN RecordYielderRandomized
 {
 public:
-	explicit RecordYielderRandomized(std::vector<std::string>& filenames, int buffsize, int seed, int epoch)
+	explicit RecordYielderRandomized(std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch)
 	{
 		m_filenames = filenames;
 		m_buffsize = buffsize;
-		uint64_t hash = ((uint64_t)std::hash<int>{}(seed)) ^ ((uint64_t)std::hash<int>{}(epoch) << 1);
+		uint64_t hash = ((uint64_t)std::hash<size_t>{}(seed)) ^ ((uint64_t)std::hash<int>{}(epoch) << 1);
 		std::mt19937_64 shuffle_rnd(hash);
 		std::shuffle(m_filenames.begin(), m_filenames.end(), shuffle_rnd);
 
@@ -189,10 +189,9 @@ public:
 		}
 	}
 
-	std::vector<py::object> GetNextN(int n)
+	py::list GetNextN(int n)
 	{
-		std::vector<py::object> batch;
-		batch.reserve(n);
+		py::list  batch;
 		for (int i = 0; i < n; ++i)
 		{
 			FillBuffer();
@@ -201,7 +200,7 @@ public:
 			{
 				py::object value = std::move(m_buffer.back());
 				m_buffer.pop_back();
-				batch.push_back(std::move(value));
+				batch.append(std::move(value));
 			}
 			else if(batch.size() > 0)
 			{
@@ -212,7 +211,7 @@ public:
 				throw py::stop_iteration();
 			}
 		}
-		return batch;
+		return std::move(batch);
 	}
 
 private:
@@ -225,10 +224,132 @@ private:
 };
 
 
-class RecordYielderParallel
+class HIDDEN ParsedRecordYielderRandomized
 {
 public:
-	explicit RecordYielderParallel(std::vector<std::string>& filenames, int buffsize, int parallelism, int seed, int epoch)
+	explicit ParsedRecordYielderRandomized(py::object parser, std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch)
+	{
+		m_parser_obj = parser;
+		m_parser = py::cast<Records::RecordParser*>(m_parser_obj);
+		m_filenames = filenames;
+		m_buffsize = buffsize;
+		uint64_t hash = ((uint64_t)std::hash<size_t>{}(seed)) ^ ((uint64_t)std::hash<int>{}(epoch) << 1);
+		std::mt19937_64 shuffle_rnd(hash);
+		std::shuffle(m_filenames.begin(), m_filenames.end(), shuffle_rnd);
+
+		m_current_file = 0;
+		m_rr = nullptr;
+		m_rnd = std::mt19937_64(std::hash<int>{}(hash) ^ ((uint64_t)std::hash<int>{}(seed) << 1));
+
+	}
+
+	virtual ~ParsedRecordYielderRandomized() = default;
+
+	void FillBuffer()
+	{
+		while (m_buffer.size() < m_buffsize)
+		{
+			if (m_current_file >= m_filenames.size())
+			{
+				return;
+			}
+
+			if (m_rr == nullptr)
+			{
+				m_rr = new RecordReader(m_filenames[m_current_file]);
+			}
+
+			std::string str;
+			auto alloc = [&str](size_t size)
+			{
+				str.resize(size);
+				return &str[0];
+			};
+			auto status = m_rr->GetNext(alloc);
+			if (!status.ok())
+			{
+				if (status.state == fsal::Status::kEOF)
+				{
+					delete m_rr;
+					m_rr = nullptr;
+					++m_current_file;
+					continue;
+				}
+				else
+				{
+					throw runtime_error("Error while iterating RecordReader at offset: %zd", m_rr->offset());
+				}
+			}
+			auto index = m_rnd() % (m_buffer.size() + 1);
+			if (index == m_buffer.size())
+			{
+				m_buffer.push_back(std::move(str));
+			}
+			else
+			{
+				m_buffer.push_back(std::move(m_buffer[index]));
+				m_buffer[index] = std::move(str);
+			}
+		}
+	}
+
+	py::object GetNext()
+	{
+		FillBuffer();
+
+		if (!m_buffer.empty())
+		{
+			std::string value = std::move(m_buffer.back());
+			m_buffer.pop_back();
+			return m_parser->ParseSingleExample(value);
+		}
+		else
+		{
+			throw py::stop_iteration();
+		}
+	}
+
+	py::list GetNextN(int n)
+	{
+		std::vector<std::string>  batch;
+		for (int i = 0; i < n; ++i)
+		{
+			FillBuffer();
+
+			if (!m_buffer.empty())
+			{
+				std::string value = std::move(m_buffer.back());
+				m_buffer.pop_back();
+				batch.push_back(std::move(value));
+			}
+			else if(batch.size() > 0)
+			{
+				return m_parser->ParseExample(batch);
+			}
+			else
+			{
+				throw py::stop_iteration();
+			}
+		}
+		return std::move(m_parser->ParseExample(batch));
+	}
+
+private:
+	std::mt19937_64 m_rnd;
+	std::vector<std::string> m_filenames;
+	std::vector<std::string> m_buffer;
+	int m_buffsize;
+	RecordReader* m_rr;
+	int m_current_file;
+	py::object m_parser_obj;
+	Records::RecordParser* m_parser;
+};
+
+
+class HIDDEN RecordYielderParallel
+{
+public:
+	explicit RecordYielderParallel(std::vector<std::string>& filenames, int buffsize, int parallelism, uint64_t seed, int epoch)
 	{
 		m_parallelism = parallelism;
 		m_filenames = filenames;

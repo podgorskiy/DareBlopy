@@ -345,11 +345,10 @@ void Records::RecordParser::ParseSingleExampleImpl(const std::string& serialized
 	}
 }
 
-std::vector<py::object> Records::RecordParser::ParseExample(const std::vector<std::string>& serialized)
+py::list Records::RecordParser::ParseExample(const std::vector<std::string>& serialized)
 {
-	std::vector<py::object> tensors;
+	py::list tensors;
 	std::vector<void*> tensor_ptrs;
-	tensors.reserve(fixed_len_features.size());
 	{
 		py::gil_scoped_release release;
 		tensor_ptrs.reserve(fixed_len_features.size());
@@ -368,7 +367,7 @@ std::vector<py::object> Records::RecordParser::ParseExample(const std::vector<st
 				auto result = TensorFactoryPtr(prop.first, prop.second);
 				auto tensor = result.first;
 				auto tensor_ptr = result.second;
-				tensors.push_back(tensor);
+				tensors.append(tensor);
 				tensor_ptrs.push_back(tensor_ptr);
 			}
 		}
@@ -392,11 +391,10 @@ std::vector<py::object> Records::RecordParser::ParseExample(const std::vector<st
 	return tensors;
 }
 
-std::vector<py::object> Records::RecordParser::ParseSingleExample(const std::string& serialized)
+py::list Records::RecordParser::ParseSingleExample(const std::string& serialized)
 {
-	std::vector<py::object> tensors;
+	py::list  tensors;
 	std::vector<void*> tensor_ptrs;
-	tensors.reserve(fixed_len_features.size());
 	tensor_ptrs.reserve(fixed_len_features.size());
 
 	for (const auto& feature_config: fixed_len_features)
@@ -404,7 +402,7 @@ std::vector<py::object> Records::RecordParser::ParseSingleExample(const std::str
 		auto result = TensorFactoryPtr(feature_config.dtype, feature_config.shape);
 		auto tensor = result.first;
 		auto tensor_ptr = result.second;
-		tensors.push_back(tensor);
+		tensors.append(tensor);
 		tensor_ptrs.push_back(tensor_ptr);
 	}
 

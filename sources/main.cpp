@@ -228,17 +228,26 @@ PYBIND11_MODULE(_dareblopy, m)
 			{
 				return self;
 			})
-			.def("__next__", &RecordYielderBasic::GetNext)
-	        .def("next_n", &RecordYielderBasic::GetNextN);
+			.def("__next__", &RecordYielderBasic::GetNext, py::return_value_policy::take_ownership)
+	        .def("next_n", &RecordYielderBasic::GetNextN, py::return_value_policy::take_ownership);
 
 	py::class_<RecordYielderRandomized>(m, "RecordYielderRandomized")
-			.def(py::init<std::vector<std::string>&, int, int, int>())
+			.def(py::init<std::vector<std::string>&, int, uint64_t, int>())
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;
 			})
-			.def("__next__", &RecordYielderRandomized::GetNext)
-			.def("next_n", &RecordYielderRandomized::GetNextN);
+			.def("__next__", &RecordYielderRandomized::GetNext, py::return_value_policy::take_ownership)
+			.def("next_n", &RecordYielderRandomized::GetNextN, py::return_value_policy::take_ownership);
+
+	py::class_<ParsedRecordYielderRandomized>(m, "ParsedRecordYielderRandomized")
+			.def(py::init<py::object, std::vector<std::string>&, int, uint64_t, int>())
+			.def("__iter__", [](py::object& self)->py::object
+			{
+				return self;
+			})
+			.def("__next__", &ParsedRecordYielderRandomized::GetNext, py::return_value_policy::take_ownership)
+			.def("next_n", &ParsedRecordYielderRandomized::GetNextN, py::return_value_policy::take_ownership);
 
 	m.def("open_as_bytes", [](const char* filename)
 	{

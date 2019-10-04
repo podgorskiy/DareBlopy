@@ -5,27 +5,30 @@ except ImportError:
 from threading import Thread, Lock, Event
 
 
-def data_loader(yielder, iteration_count=None, worker_count=1, queue_size=16):
+def data_loader(yielder, collator=None, iteration_count=None, worker_count=1, queue_size=16):
     class State:
         def __init__(self):
             self.lock = Lock()
             self.iteration_count = iteration_count
             self.quit_event = Event()
             self.queue = Queue(queue_size)
-            self.all_done = False
             self.active_workers = 0
+            self.collator = collator
 
     def _worker(state):
         while not state.quit_event.is_set():
             try:
                 b = next(yielder)
+                if state.collator:
+                    b = state.collator(b)
                 state.queue.put(b)
             except StopIteration:
-                state.all_done = True
                 break
 
         with state.lock:
             state.active_workers -= 1
+            if state.active_workers == 0:
+                state.queue.put(None)
 
     class Iterator:
         def __init__(self):
@@ -46,13 +49,11 @@ def data_loader(yielder, iteration_count=None, worker_count=1, queue_size=16):
             return self
 
         def __next__(self):
-            if not self.state.quit_event.is_set() and not (self.state.queue.empty() and self.state.active_workers == 0):
-                item = self.state.queue.get()
-                self.state.queue.task_done()
-                return item
-            else:
-                self.state.quit_event.set()
+            item = self.state.queue.get()
+            self.state.queue.task_done()
+            if item is None:
                 raise StopIteration
+            return item
 
         def __del__(self):
             self.state.quit_event.set()

@@ -216,6 +216,7 @@ add_library(protobuf STATIC ${PROTOBUF})
 set(LZ4_DIR lz4/lib/)
 set(SOURCES_LZ4 ${LZ4_DIR}lz4.c ${LZ4_DIR}lz4hc.c ${LZ4_DIR}lz4.h ${LZ4_DIR}lz4hc.h ${LZ4_DIR}xxhash.c ${LZ4_DIR}xxhash.h)
 add_library(lz4 ${SOURCES_LZ4})
+include_directories(${LZ4_DIR})
 #####################################################################
 
 #####################################################################
@@ -236,7 +237,6 @@ add_library(fsal STATIC ${FSAL_SOURCES})
 ##############################################################
 # Includes
 ##############################################################
-include_directories(libs/lz4/lib)
 include_directories(zlib)
 include_directories(fsal/sources)
 include_directories(libpng)

@@ -192,9 +192,9 @@ PYBIND11_MODULE(_dareblopy, m)
 			{
 				PyBytesObject* bytesObject = nullptr;
 				auto status = self.GetNext(GetBytesAllocator(bytesObject));
-				if (!status.ok())
+				if (!status.ok() || status.is_eof())
 				{
-					if (status.state == fsal::Status::kEOF)
+					if (status.is_eof())
 					{
 						throw py::stop_iteration();
 					}
@@ -452,5 +452,6 @@ PYBIND11_MODULE(_dareblopy, m)
 
 	py::class_<fsal::Status>(m, "Status")
 			.def(py::init())
-			.def("__nonzero__", &fsal::Status::ok);
+			.def("__nonzero__", &fsal::Status::ok)
+			.def("is_eof", &fsal::Status::is_eof);
 }

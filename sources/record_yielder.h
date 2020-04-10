@@ -41,9 +41,9 @@ public:
 		}
 
 		auto status = m_rr->GetNext(GetBytesAllocator(bytesObject));
-		if (!status.ok())
+		if (!status.ok() || status.is_eof())
 		{
-			if (status.state == fsal::Status::kEOF)
+			if (status.is_eof())
 			{
 				delete m_rr;
 				m_rr = nullptr;
@@ -85,9 +85,9 @@ public:
 				}
 
 				auto status = m_rr->GetNext(GetBytesAllocator(bytesObject));
-				if (!status.ok())
+				if (!status.ok() || status.is_eof())
 				{
-					if (status.state == fsal::Status::kEOF)
+					if (status.is_eof())
 					{
 						delete m_rr;
 						m_rr = nullptr;
@@ -152,9 +152,9 @@ public:
 			PyBytesObject* bytesObject = nullptr;
 
 			auto status = m_rr->GetNext(GetBytesAllocator(bytesObject));
-			if (!status.ok())
+			if (!status.ok() || status.is_eof())
 			{
-				if (status.state == fsal::Status::kEOF)
+				if (status.is_eof())
 				{
 					delete m_rr;
 					m_rr = nullptr;
@@ -274,9 +274,9 @@ public:
 				return &str[0];
 			};
 			auto status = m_rr->GetNext(alloc);
-			if (!status.ok())
+			if (!status.ok() || status.is_eof())
 			{
-				if (status.state == fsal::Status::kEOF)
+				if (status.is_eof())
 				{
 					delete m_rr;
 					m_rr = nullptr;

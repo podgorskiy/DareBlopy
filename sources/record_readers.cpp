@@ -57,9 +57,9 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 	size_t result = 0;
 	auto read_result = m_file.Read(dst, expected, &result);
 
-	if (!read_result.ok())
+	if (!read_result.ok() || read_result.is_eof())
 	{
-		if (result == 0 && read_result.state == fsal::Status::kEOF)
+		if (result == 0 && read_result.is_eof())
 		{
 			return read_result;
 		}
@@ -73,7 +73,7 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 	{
 		throw runtime_error("Corrupted record. Error reading record at offset %zd. Record file: %s", offset, m_file.GetPath().c_str());
 	}
-	return fsal::Status::Succeeded();
+	return true;
 }
 
 
@@ -93,7 +93,7 @@ fsal::Status RecordReader::ReadRecord(size_t& offset, fsal::MemRefFile* mem_file
 
 	offset += sizeof(RecordHeader) + header.length + sizeof(uint32_t);
 	assert(offset == m_file.Tell());
-	return fsal::Status::Succeeded();
+	return true;
 }
 
 fsal::Status RecordReader::ReadRecord(size_t& offset, std::function<void*(size_t size)> alloc_func)
@@ -112,7 +112,7 @@ fsal::Status RecordReader::ReadRecord(size_t& offset, std::function<void*(size_t
 
 	offset += sizeof(RecordHeader) + header.length + sizeof(uint32_t);
 	assert(offset == m_file.Tell());
-	return fsal::Status::Succeeded();
+	return true;
 }
 
 fsal::Status RecordReader::GetNext()

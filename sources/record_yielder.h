@@ -21,7 +21,10 @@ public:
 		m_rr = nullptr;
 	}
 
-	virtual ~RecordYielderBasic() = default;
+	virtual ~RecordYielderBasic()
+	{
+		delete m_rr;
+	}
 
 	py::object GetNext()
 	{
@@ -127,7 +130,10 @@ public:
 		m_rnd = std::mt19937_64(std::hash<int>{}(hash) ^ ((uint64_t)std::hash<int>{}(seed) << 1));
 	}
 
-	virtual ~RecordYielderRandomized() = default;
+	virtual ~RecordYielderRandomized()
+	{
+		delete m_rr;
+	}
 
 	void FillBuffer()
 	{
@@ -240,10 +246,12 @@ public:
 		m_current_file = 0;
 		m_rr = nullptr;
 		m_rnd = std::mt19937_64(std::hash<int>{}(hash) ^ ((uint64_t)std::hash<int>{}(seed) << 1));
-
 	}
 
-	virtual ~ParsedRecordYielderRandomized() = default;
+	virtual ~ParsedRecordYielderRandomized()
+	{
+		delete m_rr;
+	}
 
 	void FillBuffer()
 	{
@@ -365,7 +373,10 @@ public:
 		m_reached_end = false;
 	}
 
-	virtual ~RecordYielderParallel() = default;
+	virtual ~RecordYielderParallel()
+	{
+		delete m_rr;
+	}
 
 	py::object GetNext()
 	{

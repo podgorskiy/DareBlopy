@@ -249,7 +249,7 @@ libs = {
 
 extra_link = {
     'darwin': [],
-    'posix': [],
+    'posix': ['-static-libstdc++', '-static-libgcc'],
     'win32': [],
 }
 

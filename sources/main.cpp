@@ -298,13 +298,20 @@ PYBIND11_MODULE(_dareblopy, m)
 	{
 		fsal::FileSystem fs;
 		auto archive_file = fs.Open(filename);
-		auto zr = new fsal::ZipReader;
-		zr->OpenArchive(archive_file);
-		return zr;
+		auto zipreader = new fsal::ZipReader;
+		zipreader->OpenArchive(archive_file);
+		return new fsal::Archive(fsal::ArchiveReaderInterfacePtr(static_cast<fsal::ArchiveReaderInterface*>(zipreader)));
 	});
 
-	py::class_<fsal::ArchiveReaderInterface> Archive(m, "Archive");
-		Archive.def("open", [](fsal::ArchiveReaderInterface& self, const std::string& filepath)->py::object{
+	m.def("open_zip_archive", [](fsal::File file)
+	{
+		auto* zipreader = new fsal::ZipReader();
+		zipreader->OpenArchive(file);
+		return new fsal::Archive(fsal::ArchiveReaderInterfacePtr(static_cast<fsal::ArchiveReaderInterface*>(zipreader)));
+	});
+
+	py::class_<fsal::Archive> Archive(m, "Archive");
+		Archive.def("open", [](fsal::Archive& self, const std::string& filepath)->py::object{
 			fsal::File f;
 			{
 				py::gil_scoped_release release;
@@ -319,7 +326,7 @@ PYBIND11_MODULE(_dareblopy, m)
 				return py::cast<py::none>(Py_None);
 			}
 		}, "Opens file")
-		.def("open_as_bytes", [](fsal::ArchiveReaderInterface& self, const std::string& filepath)->py::object
+		.def("open_as_bytes", [](fsal::Archive& self, const std::string& filepath)->py::object
 		{
 			PyBytesObject* bytesObject = nullptr;
 			{
@@ -336,7 +343,7 @@ PYBIND11_MODULE(_dareblopy, m)
 
 			return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
 		})
-		.def("open_as_numpy_ubyte", [](fsal::ArchiveReaderInterface& self, const std::string& filepath, py::object _shape)
+		.def("open_as_numpy_ubyte", [](fsal::Archive& self, const std::string& filepath, py::object _shape)
 		{
 			size_t size = 0;
 			std::vector<size_t> shape;
@@ -362,7 +369,7 @@ PYBIND11_MODULE(_dareblopy, m)
 			}
 			return data;
 		})
-		.def("read_jpg_as_numpy", [](fsal::ArchiveReaderInterface& self, const std::string& filepath, bool use_turbo)
+		.def("read_jpg_as_numpy", [](fsal::Archive& self, const std::string& filepath, bool use_turbo)
 		{
 			size_t size = 0;
 			fsal::File f;
@@ -386,15 +393,12 @@ PYBIND11_MODULE(_dareblopy, m)
 				return decode_jpeg_vanila(data, size);
 			}
 		},  py::arg("filename"),  py::arg("use_turbo") = false)
-		.def("exists", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
+		.def("exists", [](fsal::Archive& self, const std::string& filepath){
 			return self.Exists(filepath);
 		}, "Exists")
-		.def("list_directory", [](fsal::ArchiveReaderInterface& self, const std::string& filepath){
+		.def("list_directory", [](fsal::Archive& self, const std::string& filepath){
 			return self.Exists(filepath);
 		}, "ListDirectory");
-
-	py::class_<fsal::ZipReader>(m, "ZipReader", Archive)
-		.def(py::init());
 
 	py::class_<fsal::FileSystem>(m, "FileSystem")
 		.def(py::init())

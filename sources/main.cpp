@@ -175,7 +175,7 @@ PYBIND11_MODULE(_dareblopy, m)
 					py::gil_scoped_release release;
 
 					fsal::Status result = self.ReadRecord(offset, GetBytesAllocator(bytesObject));
-					if (!result.ok())
+					if (!result.ok() || result.is_eof())
 					{
 						PyObject_Free(bytesObject);
 						throw runtime_error("Error reading record at offset %zd", offset);

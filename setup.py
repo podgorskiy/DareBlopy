@@ -1,6 +1,5 @@
-#
-# Copyright 2017-2019 Stanislav Pidhorskyi. All rights reserved.
-# License: https://raw.githubusercontent.com/podgorskiy/impy/master/LICENSE.txt
+# Copyright 2017-2020 Stanislav Pidhorskyi. All rights reserved.
+# License: https://raw.githubusercontent.com/podgorskiy/bimpy/master/LICENSE.txt
 #
 
 from setuptools import setup, Extension, find_packages
@@ -163,10 +162,11 @@ def build_extension(self, ext):
 # patching
 build_ext.build_extension = build_extension
 
-fsal = list(glob.glob('fsal/sources/**/*.cpp', recursive=True))
+fsal = list(glob.glob('fsal/sources/*.cpp'))
 crc32c = list(glob.glob('crc32c/src/*.cc'))
 zlib = list(glob.glob('zlib/*.c'))
-dareblopy = list(glob.glob('sources/**/*.c*', recursive=True))
+lz4 = list(glob.glob('lz4/lib/*.c'))
+dareblopy = list(glob.glob('sources/*.c*')) + list(glob.glob('sources/protobuf/*.c*'))
 
 protobuf = """any_lite.cc arena.cc extension_set.cc generated_enum_util.cc
         generated_message_table_driven_lite.cc generated_message_util.cc implicit_weak_message.cc
@@ -274,11 +274,12 @@ extra_compile_c_args = {
 extra_compile_asm_args = ['-DELF', '-D__x86_64__', '-DPIC', '-DTURBO', '-g', '-f elf64', '-Ox']
 
 extension = Extension("_dareblopy",
-                      jpeg_turbo + jpeg_vanila + jpeg_turbo_simd + dareblopy + fsal + crc32c + zlib + protobuf,
+                      jpeg_turbo + jpeg_vanila + jpeg_turbo_simd + dareblopy + fsal + crc32c + zlib + protobuf + lz4,
                              define_macros = definitions[target_os],
                              include_dirs=[
                                  "zlib",
                                  "fsal/sources",
+                                 "lz4/lib",
                                  "pybind11/include",
                                  "crc32c/include",
                                  "protobuf/src",

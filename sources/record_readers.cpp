@@ -83,7 +83,7 @@ fsal::Status RecordReader::ReadRecord(size_t& offset, fsal::MemRefFile* mem_file
 
 	RecordHeader header = { 0 };
 	fsal::Status r = ReadChecksummed(offset, sizeof(RecordHeader::length), (uint8_t*)&header);
-	if (!r.ok())
+	if (!r.ok() || r.is_eof())
 	{
 		return r;
 	}
@@ -102,7 +102,7 @@ fsal::Status RecordReader::ReadRecord(size_t& offset, std::function<void*(size_t
 
 	RecordHeader header = { 0 };
 	fsal::Status r = ReadChecksummed(offset, sizeof(RecordHeader::length), (uint8_t*)&header);
-	if (!r.ok())
+	if (!r.ok() || r.is_eof())
 	{
 		return r;
 	}

@@ -402,8 +402,8 @@ PYBIND11_MODULE(_dareblopy, m)
 
 	py::class_<fsal::FileSystem>(m, "FileSystem")
 		.def(py::init())
-		.def("open", [](fsal::FileSystem& fs, const fsal::Location& location, fsal::Mode mode)->py::object{
-				fsal::File f = fs.Open(location, mode);
+		.def("open", [](fsal::FileSystem& fs, const fsal::Location& location, fsal::Mode mode, bool lockable)->py::object{
+				fsal::File f = fs.Open(location, mode, lockable);
 				if (f)
 				{
 					return py::cast(f);
@@ -412,7 +412,7 @@ PYBIND11_MODULE(_dareblopy, m)
 				{
 					return py::cast<py::none>(Py_None);
 				}
-			}, py::arg("location"), py::arg("mode") = fsal::kRead, "Opens file")
+			}, py::arg("location"), py::arg("mode") = fsal::kRead, py::arg("lockable") = false, "Opens file")
 		.def("exists", &fsal::FileSystem::Exists, "Exists")
 		.def("rename", &fsal::FileSystem::Rename, "Rename")
 		.def("remove", &fsal::FileSystem::Remove, "Remove")

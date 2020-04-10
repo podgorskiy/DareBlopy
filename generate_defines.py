@@ -45,5 +45,6 @@ def main():
 
     print('#include "jconfig-vanila.h"\n#else\n#error Error! JPEG library not defined! Use TURBO or VANILA\n#endif')
 
+
 if __name__ == '__main__':
     main()

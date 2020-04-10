@@ -20,7 +20,9 @@ import numpy as np
 
 
 class TFRecordsDatasetIterator:
-    def __init__(self, filenames, batch_size, buffer_size=1000, seed=np.uint64(time.time() * 1000), epoch=0):
+    def __init__(self, filenames, batch_size, buffer_size=1000, seed=None, epoch=0):
+        if seed is None:
+            seed = np.uint64(time.time() * 1000)
         self.record_yielder = db.RecordYielderRandomized(filenames, buffer_size, seed, epoch)
         self.batch_size = batch_size
 
@@ -29,7 +31,9 @@ class TFRecordsDatasetIterator:
 
 
 class ParsedTFRecordsDatasetIterator:
-    def __init__(self, filenames, features, batch_size, buffer_size=1000, seed=np.uint64(time.time() * 1000), epoch=0):
+    def __init__(self, filenames, features, batch_size, buffer_size=1000, seed=None, epoch=0):
+        if seed is None:
+            seed = np.uint64(time.time() * 1000)
         self.parser = db.RecordParser(features, False)
         self.record_yielder = db.ParsedRecordYielderRandomized(self.parser, filenames, buffer_size, seed, epoch)
         self.batch_size = batch_size

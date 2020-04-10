@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(VirtualFSDataLoader)
-
-set(EXECUTABLE_NAME "VirtualFSDataLoader")
+project(DareBlopy)
 
 option(USE_MSVC_RUNTIME_LIBRARY_DLL OFF)
 option(PNG_SHARED "Build shared lib" OFF)
@@ -47,7 +45,6 @@ else()
 endif()
 message(STATUS "${BITS}-bit build (${CPU_TYPE})")
 
-
 include(CheckTypeSize)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -60,77 +57,16 @@ FUNCTION(PREPEND var prefix)
     SET(${var} "${listVar}" PARENT_SCOPE)
 ENDFUNCTION(PREPEND)
 
-# If not given a Python installation, then use the current active Python
-if(NOT DEFINED PYTHON_EXECUTABLE)
-    execute_process(
-            COMMAND "which" "python3" RESULT_VARIABLE _exitcode OUTPUT_VARIABLE _py_exe)
-    if(${_exitcode} EQUAL 0)
-        if (NOT MSVC)
-            string(STRIP ${_py_exe} PYTHON_EXECUTABLE)
-        endif()
-        message(STATUS "Setting Python to ${PYTHON_EXECUTABLE}")
-    endif()
-endif()
+find_package (Python 3 COMPONENTS Interpreter Development REQUIRED)
+find_package(PythonLibs 3 REQUIRED)
 
-# Check that Python works
-if(DEFINED PYTHON_EXECUTABLE)
-    execute_process(
-            COMMAND "${PYTHON_EXECUTABLE}" "--version"
-            RESULT_VARIABLE _exitcode)
-    if(NOT ${_exitcode} EQUAL 0)
-        message(FATAL_ERROR "The Python executable ${PYTHON_EXECUTABLE} cannot be run. Make sure that it is an absolute path.")
-    endif()
-endif()
+message("Python_FOUND:${Python_FOUND}")
+message("Python_VERSION:${Python_VERSION}")
+message("Python_Development_FOUND:${Python_Development_FOUND}")
+message("Python_LIBRARIES:${Python_LIBRARIES}")
+message("PYTHON_LIBRARY_DIR:${PYTHON_LIBRARY_DIR}")
 
-function(pycmd_no_exit outvar exitcode cmd)
-    # Use PYTHON_EXECUTABLE if it is defined, otherwise default to python
-    if ("${PYTHON_EXECUTABLE}" STREQUAL "")
-        set(_python_exe "python")
-    else()
-        set(_python_exe "${PYTHON_EXECUTABLE}")
-    endif()
-    # run the actual command
-    execute_process(
-            COMMAND "${_python_exe}" -c "${cmd}"
-            RESULT_VARIABLE _exitcode
-            OUTPUT_VARIABLE _output)
-    # Remove supurflous newlines (artifacts of print)
-    string(STRIP "${_output}" _output)
-    set(${outvar} "${_output}" PARENT_SCOPE)
-    set(${exitcode} "${_exitcode}" PARENT_SCOPE)
-endfunction()
-
-
-if(NOT DEFINED PYTHON_INCLUDE_DIR)
-    # distutils.sysconfig, if it's installed, is more accurate than sysconfig,
-    # which sometimes outputs directories that do not exist
-    pycmd_no_exit(_py_inc _exitcode "from distutils import sysconfig; print(sysconfig.get_python_inc())")
-    if("${_exitcode}" EQUAL 0 AND IS_DIRECTORY "${_py_inc}")
-        SET(PYTHON_INCLUDE_DIR "${_py_inc}")
-        message(STATUS "Setting Python's include dir to ${_py_inc} from distutils.sysconfig")
-    else()
-        pycmd_no_exit(_py_inc _exitcode "from sysconfig import get_paths; print(get_paths()['include'])")
-        if("${_exitcode}" EQUAL 0 AND IS_DIRECTORY "${_py_inc}")
-            SET(PYTHON_INCLUDE_DIR "${_py_inc}")
-            message(STATUS "Setting Python's include dir to ${_py_inc} from sysconfig")
-        endif()
-    endif()
-endif(NOT DEFINED PYTHON_INCLUDE_DIR)
-
-if(NOT DEFINED PYTHON_LIBRARY)
-    pycmd_no_exit(_py_libdir _exitcode "from distutils import sysconfig; print(sysconfig.get_config_var('LIBDIR'))")
-    pycmd_no_exit(_py_INSTSONAME _exitcode "from distutils import sysconfig; print(sysconfig.get_config_var('INSTSONAME'))")
-
-    if("${_exitcode}" EQUAL 0 AND EXISTS "${_py_libdir}" AND EXISTS "${_py_libdir}")
-        SET(PYTHON_LIBRARY_DIR "${_py_libdir}")
-        SET(PYTHON_LIBRARY "${_py_INSTSONAME}")
-        if (MSVC)
-            STRING(REPLACE "Lib" "libs" _py_static_lib ${_py_lib})
-            link_directories(${_py_static_lib})
-        endif()
-        message(STATUS "Setting Python's library to ${PYTHON_LIBRARY}")
-    endif()
-endif(NOT DEFINED PYTHON_LIBRARY)
+include_directories(${Python_INCLUDE_DIRS} )
 
 
 ##############################################################
@@ -141,6 +77,17 @@ if(MSVC)
     set(COMMON_OPTIONS /W3 /wd4996 /we4239 /we4002 /we4700 /we4305 /EHsc /MP)
     set(DEBUG_OPTIONS /MTd /Od /Zi)
     set(RELEASE_OPTIONS /MT /Ox /fp:fast /GL /GR-)
+
+    add_definitions(-D_SCL_SECURE)
+    add_definitions(-D_SECURE_SCL)
+    add_definitions(-D_ALLOW_KEYWORD_MACROS)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+    add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
+    add_definitions(-DWINVER=0x0602)
+    add_definitions(-D_WIN32_WINNT=0x0602)
+    add_definitions(-DNTDDI_VERSION=0x06020000)
+
 elseif(APPLE)
     set(COMMON_OPTIONS -DHAVE_PTHREAD -DGUID_CFUUID -lstdc++fs)
     set(DEBUG_OPTIONS -g)
@@ -170,27 +117,12 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_SSE42)
 
 add_definitions(-D_HAS_EXCEPTIONS=0)
-add_definitions(-D_SCL_SECURE)
-add_definitions(-D_SECURE_SCL)
-add_definitions(-D_ALLOW_KEYWORD_MACROS)
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
-#add_definitions(-DWINVER=0x0602)
-#add_definitions(-D_WIN32_WINNT=0x0602)
-#add_definitions(-DNTDDI_VERSION=0x06020000)
 
-if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        set (CMAKE_CXX_FLAGS "--std=c++14 ${CMAKE_CXX_FLAGS}")
-    endif ()
-else ()
-    set (CMAKE_CXX_STANDARD 14)
-endif ()
+set (CMAKE_CXX_STANDARD 14)
+
 set (CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS}")
 set (CMAKE_C_FLAGS "-fPIC -g  ${CMAKE_C_FLAGS}")
-# set (CMAKE_CXX_FLAGS "-fPIC -g -fno-strict-aliasing -fno-common -dynamic -Os -pipe -fwrapv  -Wall -DENABLE_DTRACE ${CMAKE_CXX_FLAGS}")
-set (CMAKE_CXX_FLAGS "-fPIC -g  -msse2 -msse3 -msse4 -mpopcnt -funsafe-math-optimizations ${CMAKE_CXX_FLAGS}")
+set (CMAKE_CXX_FLAGS "-fPIC -g -fno-strict-aliasing -msse2 -msse3 -msse4 -mpopcnt -funsafe-math-optimizations ${CMAKE_CXX_FLAGS}")
 
 include_directories(configs)
 
@@ -221,20 +153,16 @@ set(JPEG_TURBO_SOURCES jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jch
         jdtrans.c jerror.c jfdctflt.c jfdctfst.c jfdctint.c jidctflt.c jidctfst.c
         jidctint.c jidctred.c jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c
         jaricom.c jcarith.c jdarith.c)
-#set(JPEG_SOURCES sources/libjpeg-turbo_CU.cpp)
 
 PREPEND(JPEG_TURBO_SOURCES libjpeg-turbo/ ${JPEG_TURBO_SOURCES})
 add_subdirectory(libjpeg-turbo/simd)
 
-#add_subdirectory (libjpeg-turbo)
-#file(GLOB LIBJPEG_SOURCES libjpeg-turbo/*.c libjpeg-turbo/*.h)
 add_library(jpeg-turbo STATIC ${JPEG_TURBO_SOURCES} $<TARGET_OBJECTS:simd> ${SIMD_OBJS})
 target_compile_options(jpeg-turbo PRIVATE -DTURBO -Ofast)
 target_compile_options(simd PRIVATE -DTURBO)
 #####################################################################
 
 
-#add_subdirectory (libjpeg)
 #####################################################################
 # libjpeg
 #####################################################################
@@ -285,9 +213,9 @@ add_library(protobuf STATIC ${PROTOBUF})
 #####################################################################
 # lz4
 #####################################################################
-#set(LZ4_DIR libs/lz4/lib/)
-#set(SOURCES_LZ4 ${LZ4_DIR}lz4.c ${LZ4_DIR}lz4hc.c ${LZ4_DIR}lz4.h ${LZ4_DIR}lz4hc.h ${LZ4_DIR}xxhash.c ${LZ4_DIR}xxhash.h)
-#add_library(lz4 ${SOURCES_LZ4})
+set(LZ4_DIR lz4/lib/)
+set(SOURCES_LZ4 ${LZ4_DIR}lz4.c ${LZ4_DIR}lz4hc.c ${LZ4_DIR}lz4.h ${LZ4_DIR}lz4hc.h ${LZ4_DIR}xxhash.c ${LZ4_DIR}xxhash.h)
+add_library(lz4 ${SOURCES_LZ4})
 #####################################################################
 
 #####################################################################
@@ -308,7 +236,7 @@ add_library(fsal STATIC ${FSAL_SOURCES})
 ##############################################################
 # Includes
 ##############################################################
-#include_directories(libs/lz4/lib)
+include_directories(libs/lz4/lib)
 include_directories(zlib)
 include_directories(fsal/sources)
 include_directories(libpng)
@@ -316,12 +244,9 @@ include_directories(pybind11/include)
 include_directories(${CMAKE_BINARY_DIR}/libpng)
 include_directories(protobuf/src)
 include_directories(crc32c/include)
-
 include_directories(${CMAKE_BINARY_DIR}/libjpeg-turbo)
 include_directories(${PYTHON_INCLUDE_DIR})
-
 include_directories(sources)
-
 include_directories("${PROJECT_BINARY_DIR}")
 
 link_directories("${PYTHON_LIBRARY_DIR}")
@@ -331,23 +256,9 @@ link_directories("${PYTHON_LIBRARY_DIR}")
 file(GLOB_RECURSE SOURCES sources/*.cpp sources/*.h sources/*.c sources/*.cc)
 list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sources/libjpeg-turbo_CU.cpp)
 
-macro(Folder arg)
-    file(GLOB SOURCES_${arg} sources/${arg}/*.cpp sources/${arg}/*.h sources/${arg}/*.inl sources/${arg}/*.c)
-    source_group(${arg} FILES ${SOURCES_${arg}})
-endmacro(Folder)
-
-source_group("" FILES ${SOURCES})
-#Folder(Misc)
-#Folder(Image)
-#Folder(SplashScreen)
-#Folder(ExportImport)
-
 ##############################################################
 # Targets
 ##############################################################
-# add_executable(vfsdl ${SOURCES})
-# add_library(vfsdl SHARED ${SOURCES} ${FSAL_SOURCES})
-# add_executable(vfsdl ${SOURCES})
 add_library(dareblopy SHARED ${SOURCES})
 
 ##############################################################

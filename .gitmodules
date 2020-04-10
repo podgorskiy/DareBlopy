@@ -25,3 +25,6 @@
 [submodule "crc32c"]
 	path = crc32c
 	url = https://github.com/google/crc32c.git
+[submodule "lz4"]
+	path = lz4
+	url = https://github.com/lz4/lz4.git

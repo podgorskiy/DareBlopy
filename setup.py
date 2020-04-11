@@ -1,8 +1,20 @@
-# Copyright 2017-2020 Stanislav Pidhorskyi. All rights reserved.
-# License: https://raw.githubusercontent.com/podgorskiy/bimpy/master/LICENSE.txt
+# Copyright 2019-2020 Stanislav Pidhorskyi
 #
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
 
-from setuptools import setup, Extension, find_packages
+
+from setuptools import setup, Extension
 from distutils.errors import *
 from distutils.dep_util import newer_group
 from distutils import log
@@ -159,8 +171,10 @@ def build_extension(self, ext):
         build_temp=self.build_temp,
         target_lang=language)
 
+
 # patching
 build_ext.build_extension = build_extension
+
 
 fsal = list(glob.glob('fsal/sources/*.cpp'))
 crc32c = list(glob.glob('crc32c/src/*.cc'))
@@ -300,7 +314,7 @@ extension.asm_include = ['libjpeg-turbo/simd/nasm/', 'libjpeg-turbo/simd/x86_64/
 setup(
     name='dareblopy',
 
-    version='0.0.1',
+    version='0.0.2',
 
     description='dareblopy',
     long_description=long_description,
@@ -314,7 +328,7 @@ setup(
 
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: Apache 2.0 License',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',

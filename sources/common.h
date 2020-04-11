@@ -1,3 +1,17 @@
+//   Copyright 2019-2020 Stanislav Pidhorskyi
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 #pragma once
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
@@ -24,6 +38,7 @@
 
 namespace py = pybind11;
 
+// We tell pybind11 that we want to handle ndarrays of bytes and python objects
 PYBIND11_NUMPY_OBJECT_DTYPE(py::bytes)
 PYBIND11_NUMPY_OBJECT_DTYPE(py::object)
 
@@ -52,6 +67,7 @@ inline std::string string_format(const std::string fmt_str, va_list ap)
 	return std::string(formatted.get());
 }
 
+// Like snprintf, but does not need buffer and returns std::string
 inline std::string string_format(const std::string fmt_str, ...)
 {
 	va_list ap;
@@ -79,12 +95,15 @@ private:
 };
 
 
+// Returns special allocator for reducing data copying, see https://github.com/pybind/pybind11/issues/1236#issuecomment-527730864
+// It also creates a bytes object and stores pointer to newly created object in `bytesObject`
 inline std::function<void*(size_t)> GetBytesAllocator(PyBytesObject*& bytesObject)
 {
+    // this lambda will create bytes object of the given size and
+    // will return pointer to the allocated memory, like malloc would do
 	auto alloc = [&bytesObject](size_t size)
 	{
 		bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1);
-		size -= sizeof(uint32_t);
 		PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
 		bytesObject->ob_shash = -1;
 		bytesObject->ob_sval[size] = '\0';
@@ -92,4 +111,3 @@ inline std::function<void*(size_t)> GetBytesAllocator(PyBytesObject*& bytesObjec
 	};
 	return alloc;
 }
-

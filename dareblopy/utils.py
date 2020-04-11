@@ -30,9 +30,8 @@ def make_grid(tensor, nrow=8, padding=2):
         for x in range(xmaps):
             if k >= nmaps:
                 break
-            grid[:,
-            y * height + padding : y * height + padding + height - padding,
-            x * width + padding : x * width + padding + width - padding] = tensor[k]
+            grid[:, y * height + padding : y * height + padding + height - padding,
+                    x * width + padding : x * width + padding + width - padding] = tensor[k]
             k = k + 1
     return np.transpose(grid, (1, 2, 0))
 

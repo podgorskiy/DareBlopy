@@ -1,3 +1,5 @@
+// This .proto file is based on those that are in https://github.com/tensorflow/tensorflow/tree/master/tensorflow/core/example
+
 syntax = "proto3";
 option cc_enable_arenas = true;
 

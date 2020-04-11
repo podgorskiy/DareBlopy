@@ -1,3 +1,18 @@
+//   Copyright 2019-2020 Stanislav Pidhorskyi
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+
 #include "example.h"
 
 
@@ -287,10 +302,11 @@ void Records::RecordParser::ParseSingleExampleInplace(const std::string& seriali
 				output_ = GetPtr(output[d], feature_config.dtype);
 			}
 			FeatureDecode(batch_index, feature_config.key, feature_config.dtype, feature_config.shape, f, output_);
-		} else {
-			// If the value is missing, RowDenseCopy the default value.
-//					RowDenseCopy(batch_index, dtype, default_value,
-//					             (*output_dense_values_tensor)[d]);
+		}
+		else
+		{
+			// TODO, If the value is missing, copy the default
+			throw runtime_error("Feature %s data is missing. Default value is not implemented yet", feature_config.key.c_str());
 		}
 	}
 }
@@ -337,10 +353,11 @@ void Records::RecordParser::ParseSingleExampleImpl(const std::string& serialized
 
 			}
 			FeatureDecode(batch_index, feature_config.key, feature_config.dtype, feature_config.shape, f, output[d]);
-		} else {
-			// If the value is missing, RowDenseCopy the default value.
-//					RowDenseCopy(batch_index, dtype, default_value,
-//					             (*output_dense_values_tensor)[d]);
+		}
+		else
+		{
+			// TODO, If the value is missing, copy the default
+			throw runtime_error("Feature %s data is missing. Default value is not implemented yet", feature_config.key.c_str());
 		}
 	}
 }

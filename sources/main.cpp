@@ -1,7 +1,16 @@
-/*
- * Copyright 2019 Stanislav Pidhorskyi. All rights reserved.
- * License: https://raw.githubusercontent.com/podgorskiy/bimpy/master/LICENSE.txt
- */
+//   Copyright 2019-2020 Stanislav Pidhorskyi
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
 
 #include "common.h"
 
@@ -297,7 +306,7 @@ PYBIND11_MODULE(_dareblopy, m)
 	m.def("open_zip_archive", [](const char* filename)
 	{
 		fsal::FileSystem fs;
-		auto archive_file = fs.Open(filename);
+		auto archive_file = fs.Open(filename, fsal::Mode::kRead, true);
 		auto zipreader = new fsal::ZipReader;
 		zipreader->OpenArchive(archive_file);
 		return new fsal::Archive(fsal::ArchiveReaderInterfacePtr(static_cast<fsal::ArchiveReaderInterface*>(zipreader)));
@@ -452,7 +461,13 @@ PYBIND11_MODULE(_dareblopy, m)
 				self.Seek(offset, fsal::File::Origin(origin));
 				return self.Tell();
 			}, py::arg("offset"), py::arg("origin") = 0)
-			.def("tell", &fsal::File::Tell);
+			.def("tell", &fsal::File::Tell)
+			.def("size", &fsal::File::GetSize)
+			.def("get_last_write_time", &fsal::File::GetLastWriteTime)
+			.def("path", [](fsal::File& self){
+				return self.GetPath().string();
+			});
+
 
 	py::class_<fsal::Status>(m, "Status")
 			.def(py::init())

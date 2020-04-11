@@ -14,17 +14,21 @@
 # ==============================================================================
 
 
-import os
-import sys
+def handle_debugging():
+    import os
+    import sys
 
-# if running debug session
-if os.path.exists("cmake-build-debug/"):
-    print('Running Debugging session!')
-    sys.path.insert(0, "cmake-build-debug/")
-    # sys.path.insert(0, "cmake-build-release/")
+    # if running debug session
+    if os.path.exists("cmake-build-debug/"):
+        print('Running Debugging session!')
+        sys.path.insert(0, "cmake-build-debug/")
+        # sys.path.insert(0, "cmake-build-release/")
+    del os
+    del sys
 
-del os
-del sys
+
+handle_debugging()
+
 
 from _dareblopy import *
 

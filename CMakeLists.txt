@@ -144,7 +144,6 @@ add_subdirectory (libpng)
 #####################################################################
 # libjpeg-turbo
 #####################################################################
-#
 set(JPEG_TURBO_SOURCES jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jchuff.c
         jcicc.c jcinit.c jcmainct.c jcmarker.c jcmaster.c jcomapi.c jcparam.c
         jcphuff.c jcprepct.c jcsample.c jctrans.c jdapimin.c jdapistd.c jdatadst.c
@@ -166,7 +165,6 @@ target_compile_options(simd PRIVATE -DTURBO)
 #####################################################################
 # libjpeg
 #####################################################################
-
 set(JPEG_SOURCES jmemnobs.c jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c jccolor.c
         jcdctmgr.c jchuff.c jcinit.c jcmainct.c jcmarker.c jcmaster.c jcomapi.c jcparam.c
         jcprepct.c jcsample.c jctrans.c jdapimin.c jdapistd.c jdarith.c jdatadst.c jdatasrc.c
@@ -234,9 +232,9 @@ file(GLOB FSAL_SOURCES fsal/sources/*.cpp fsal/sources/*.h)
 add_library(fsal STATIC ${FSAL_SOURCES})
 #####################################################################
 
-##############################################################
+#####################################################################
 # Includes
-##############################################################
+#####################################################################
 include_directories(zlib)
 include_directories(fsal/sources)
 include_directories(libpng)
@@ -248,24 +246,27 @@ include_directories(${CMAKE_BINARY_DIR}/libjpeg-turbo)
 include_directories(${PYTHON_INCLUDE_DIR})
 include_directories(sources)
 include_directories("${PROJECT_BINARY_DIR}")
-
 link_directories("${PYTHON_LIBRARY_DIR}")
+#####################################################################
 
+#####################################################################
 # Main sources
-##############################################################
+#####################################################################
 file(GLOB_RECURSE SOURCES sources/*.cpp sources/*.h sources/*.c sources/*.cc)
 list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/sources/libjpeg-turbo_CU.cpp)
+#####################################################################
 
-##############################################################
+#####################################################################
 # Targets
-##############################################################
+#####################################################################
 add_library(dareblopy SHARED ${SOURCES})
+#####################################################################
 
-##############################################################
+#####################################################################
 # Linkage
-##############################################################
+#####################################################################
 set(LIBRARIES rt m  stdc++fs fsal jpeg jpeg-turbo png_static zlib_static protobuf crc32c lz4 ${PYTHON_LIBRARY})
-
 target_link_libraries(dareblopy ${LIBRARIES})
 target_link_libraries(fsal stdc++fs)
 SET_TARGET_PROPERTIES(dareblopy PROPERTIES PREFIX "_")
+#####################################################################

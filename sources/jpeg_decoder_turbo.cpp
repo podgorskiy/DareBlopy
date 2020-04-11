@@ -1,3 +1,6 @@
+// Code below is mostly copy-paste of example.c from libjpeg with the only change that it returns ndarray dyrectly
+// to avoid extra copying
+
 #include "jpeg_decoder.h"
 #include <setjmp.h>
 

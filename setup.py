@@ -322,9 +322,9 @@ setup(
     url='https://github.com/podgorskiy/dareblopy',
 
     author='Stanislav Pidhorskyi',
-    author_email='stanislav@podgorskiy.com',
+    author_email='stpidhorskyi@mix.wvu.edu; stanislav@podgorskiy.com',
 
-    license='MIT',
+    license='Apache 2.0 License',
 
     classifiers=[
         'Development Status :: 3 - Alpha',

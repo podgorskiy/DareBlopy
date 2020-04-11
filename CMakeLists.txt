@@ -220,7 +220,11 @@ include_directories(${LZ4_DIR})
 #####################################################################
 # crc32c
 #####################################################################
-file(GLOB CRC32C_SOURCES libs/crc32c/src/*.cc crc32c/src/*.h)
+set(CRC32C_SOURCES crc32c.cc crc32c_arm64.cc crc32c_arm64.h crc32c_arm64_linux_check.h
+        crc32c_internal.h crc32c_portable.cc crc32c_prefetch.h crc32c_read_le.h crc32c_round_up.h crc32c_sse42.cc
+        crc32c_sse42.h crc32c_sse42_check.h)
+
+PREPEND(CRC32C_SOURCES libs/crc32c/src/ ${CRC32C_SOURCES})
 add_library(crc32c STATIC ${CRC32C_SOURCES})
 #####################################################################
 

@@ -177,10 +177,15 @@ build_ext.build_extension = build_extension
 
 
 fsal = list(glob.glob('libs/fsal/sources/*.cpp'))
-crc32c = list(glob.glob('libs/crc32c/src/*.cc'))
 zlib = list(glob.glob('libs/zlib/*.c'))
 lz4 = list(glob.glob('libs/lz4/lib/*.c'))
 dareblopy = list(glob.glob('sources/*.c*')) + list(glob.glob('sources/protobuf/*.c*'))
+
+crc32c = """crc32c.cc crc32c_arm64.cc crc32c_arm64.h crc32c_arm64_linux_check.h
+        crc32c_internal.h crc32c_portable.cc crc32c_prefetch.h crc32c_read_le.h crc32c_round_up.h crc32c_sse42.cc
+        crc32c_sse42.h crc32c_sse42_check.h"""
+
+crc32c = ['libs/crc32c/src/' + x for x in crc32c.split()]
 
 protobuf = """any_lite.cc arena.cc extension_set.cc generated_enum_util.cc
         generated_message_table_driven_lite.cc generated_message_util.cc implicit_weak_message.cc

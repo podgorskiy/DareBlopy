@@ -11,6 +11,7 @@ patch include/nasmlib.h < 0001-Remove-invalid-pure_func-qualifiers.patch
 ./configure
 make
 make install
+cd ..
 
 nasm -v
 

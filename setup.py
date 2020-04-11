@@ -263,29 +263,29 @@ libs = {
 
 extra_link = {
     'darwin': [],
-    'posix': ['-static-libstdc++', '-static-libgcc'],
+    'posix': ['-static-libstdc++', '-static-libgcc', '-flto'],
     'win32': [],
 }
 
 extra_compile_args = {
-    'darwin': ['-fPIC', '-g', '-msse2', '-msse3', '-msse4', '-mpopcnt', '-funsafe-math-optimizations'],
-    'posix': ['-fPIC', '-g', '-msse2', '-msse3', '-msse4', '-mpopcnt', '-funsafe-math-optimizations'],
+    'darwin': ['-fPIC', '-msse2', '-msse3', '-msse4', '-mpopcnt', '-funsafe-math-optimizations'],
+    'posix': ['-fPIC', '-msse2', '-msse3', '-msse4', '-mpopcnt', '-funsafe-math-optimizations'],
     'win32': ['/MT', '/fp:fast', '/GL', '/GR-'],
 }
 
 extra_compile_cpp_args = {
-    'darwin': ['-std=c++14', '-lstdc++fs', '-Ofast'],
-    'posix': ['-std=c++14', '-lstdc++fs', '-Ofast'],
+    'darwin': ['-std=c++14', '-lstdc++fs', '-Ofast', '-flto'],
+    'posix': ['-std=c++14', '-lstdc++fs', '-Ofast', '-flto'],
     'win32': [],
 }
 
 extra_compile_c_args = {
-    'darwin': ['-std=c99', '-Ofast'],
-    'posix': ['-std=c99', '-Ofast'],
+    'darwin': ['-std=c99', '-Ofast', '-flto'],
+    'posix': ['-std=c99', '-Ofast', '-flto'],
     'win32': [],
 }
 
-extra_compile_asm_args = ['-DELF', '-D__x86_64__', '-DPIC', '-DTURBO', '-g', '-f elf64', '-Ox']
+extra_compile_asm_args = ['-DELF', '-D__x86_64__', '-DPIC', '-DTURBO', '-f elf64', '-Ox']
 
 extension = Extension("_dareblopy",
                       jpeg_turbo + jpeg_vanila + jpeg_turbo_simd + dareblopy + fsal + crc32c + zlib + protobuf + lz4,

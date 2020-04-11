@@ -5,7 +5,7 @@ Features:
 
 * Direct reading of data from **ZIP** archives to bytes/numpy arrays.
 
-* You can select jpeg backend: **libjpeg** or **libjpeg-trubo**, at runtime.
+* You can select jpeg backend: **libjpeg** or **libjpeg-turbo**, at runtime.
 
 * Reading from tfrecords without tensorflow.
 

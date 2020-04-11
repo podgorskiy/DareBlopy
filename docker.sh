@@ -26,6 +26,7 @@ cp -R /io/fsal ./
 cp -R /io/sources ./
 cp /io/setup.py ./
 cp /io/README.rst ./
+cp /io/LICENSE ./
 
 for PYBIN in /opt/python/*/bin; do
     #"${PYBIN}/pip" install -r /io/dev-requirements.txt

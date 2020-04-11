@@ -176,10 +176,10 @@ def build_extension(self, ext):
 build_ext.build_extension = build_extension
 
 
-fsal = list(glob.glob('fsal/sources/*.cpp'))
-crc32c = list(glob.glob('crc32c/src/*.cc'))
-zlib = list(glob.glob('zlib/*.c'))
-lz4 = list(glob.glob('lz4/lib/*.c'))
+fsal = list(glob.glob('libs/fsal/sources/*.cpp'))
+crc32c = list(glob.glob('libs/crc32c/src/*.cc'))
+zlib = list(glob.glob('libs/zlib/*.c'))
+lz4 = list(glob.glob('libs/lz4/lib/*.c'))
 dareblopy = list(glob.glob('sources/*.c*')) + list(glob.glob('sources/protobuf/*.c*'))
 
 protobuf = """any_lite.cc arena.cc extension_set.cc generated_enum_util.cc
@@ -202,7 +202,7 @@ protobuf = """any_lite.cc arena.cc extension_set.cc generated_enum_util.cc
         util/json_util.cc  util/message_differencer.cc  util/time_util.cc  util/type_resolver_util.cc
         wire_format.cc  wrappers.pb.cc"""
 
-protobuf = ['protobuf/src/google/protobuf/' + x for x in protobuf.split()]
+protobuf = ['libs/protobuf/src/google/protobuf/' + x for x in protobuf.split()]
 
 
 jpeg_turbo = """jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jchuff.c
@@ -214,7 +214,7 @@ jpeg_turbo = """jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jchuff.c
         jidctint.c jidctred.c jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c
         jaricom.c jcarith.c jdarith.c"""
 
-jpeg_turbo = ['libjpeg-turbo/' + x for x in jpeg_turbo.split()]
+jpeg_turbo = ['libs/libjpeg-turbo/' + x for x in jpeg_turbo.split()]
 
 
 jpeg_turbo_simd = """x86_64/jsimdcpu.asm x86_64/jfdctflt-sse.asm
@@ -228,7 +228,7 @@ jpeg_turbo_simd = """x86_64/jsimdcpu.asm x86_64/jfdctflt-sse.asm
     x86_64/jdcolor-avx2.asm x86_64/jdmerge-avx2.asm x86_64/jdsample-avx2.asm
     x86_64/jfdctint-avx2.asm x86_64/jidctint-avx2.asm x86_64/jquanti-avx2.asm x86_64/jsimd.c"""
 
-jpeg_turbo_simd = ['libjpeg-turbo/simd/' + x for x in jpeg_turbo_simd.split()]
+jpeg_turbo_simd = ['libs/libjpeg-turbo/simd/' + x for x in jpeg_turbo_simd.split()]
 
 
 jpeg_vanila = """jmemnobs.c jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c jccolor.c
@@ -238,7 +238,7 @@ jpeg_vanila = """jmemnobs.c jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c
         jdmerge.c jdpostct.c jdsample.c jdtrans.c jerror.c jfdctflt.c jfdctfst.c jfdctint.c
         jidctflt.c jidctfst.c jidctint.c jquant1.c jquant2.c jutils.c jmemmgr.c"""
 
-jpeg_vanila = ['libjpeg/' + x for x in jpeg_vanila.split()]
+jpeg_vanila = ['libs/libjpeg/' + x for x in jpeg_vanila.split()]
 
 
 definitions = {
@@ -268,8 +268,8 @@ extra_link = {
 }
 
 extra_compile_args = {
-    'darwin': ['-fPIC', '-msse2', '-msse3', '-msse4', '-mpopcnt', '-funsafe-math-optimizations'],
-    'posix': ['-fPIC', '-msse2', '-msse3', '-msse4', '-mpopcnt', '-funsafe-math-optimizations'],
+    'darwin': ['-fPIC', '-msse2', '-msse3', '-msse4', '-funsafe-math-optimizations'],
+    'posix': ['-fPIC', '-msse2', '-msse3', '-msse4', '-funsafe-math-optimizations'],
     'win32': ['/MT', '/fp:fast', '/GL', '/GR-'],
 }
 
@@ -291,12 +291,12 @@ extension = Extension("_dareblopy",
                       jpeg_turbo + jpeg_vanila + jpeg_turbo_simd + dareblopy + fsal + crc32c + zlib + protobuf + lz4,
                              define_macros = definitions[target_os],
                              include_dirs=[
-                                 "zlib",
-                                 "fsal/sources",
-                                 "lz4/lib",
-                                 "pybind11/include",
-                                 "crc32c/include",
-                                 "protobuf/src",
+                                 "libs/zlib",
+                                 "libs/fsal/sources",
+                                 "libs/lz4/lib",
+                                 "libs/pybind11/include",
+                                 "libs/crc32c/include",
+                                 "libs/protobuf/src",
                                  "sources",
                                  "configs"
                              ],
@@ -309,7 +309,7 @@ extension.extra_compile_c_args = extra_compile_c_args[target_os]
 extension.file_specific_definitions = file_specific_definitions
 extension.extra_compile_asm_args = extra_compile_asm_args
 extension.asm = 'nasm'
-extension.asm_include = ['libjpeg-turbo/simd/nasm/', 'libjpeg-turbo/simd/x86_64/']
+extension.asm_include = ['libs/libjpeg-turbo/simd/nasm/', 'libs/libjpeg-turbo/simd/x86_64/']
 
 setup(
     name='dareblopy',

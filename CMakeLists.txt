@@ -122,14 +122,14 @@ set (CMAKE_CXX_STANDARD 14)
 
 set (CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS}")
 set (CMAKE_C_FLAGS "-fPIC -g  ${CMAKE_C_FLAGS}")
-set (CMAKE_CXX_FLAGS "-fPIC -g -fno-strict-aliasing -msse2 -msse3 -msse4 -mpopcnt -funsafe-math-optimizations ${CMAKE_CXX_FLAGS}")
+set (CMAKE_CXX_FLAGS "-fPIC -g -fno-strict-aliasing -msse2 -msse3 -msse4 -funsafe-math-optimizations ${CMAKE_CXX_FLAGS}")
 
 include_directories(configs)
 
 #####################################################################
 # zlib
 #####################################################################
-file(GLOB ZLIB_SOURCES zlib/*.c zlib/*.h)
+file(GLOB ZLIB_SOURCES libs/zlib/*.c libs/zlib/*.h)
 add_library(zlib_static STATIC ${ZLIB_SOURCES})
 #####################################################################
 
@@ -138,7 +138,7 @@ add_library(zlib_static STATIC ${ZLIB_SOURCES})
 #####################################################################
 # file(GLOB LPNG_SOURCES libpng/*.c libpng/*.h)
 # add_library(libpng STATIC ${LPNG_SOURCES})
-add_subdirectory (libpng)
+add_subdirectory (libs/libpng)
 #####################################################################
 
 #####################################################################
@@ -153,8 +153,8 @@ set(JPEG_TURBO_SOURCES jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jch
         jidctint.c jidctred.c jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c
         jaricom.c jcarith.c jdarith.c)
 
-PREPEND(JPEG_TURBO_SOURCES libjpeg-turbo/ ${JPEG_TURBO_SOURCES})
-add_subdirectory(libjpeg-turbo/simd)
+PREPEND(JPEG_TURBO_SOURCES libs/libjpeg-turbo/ ${JPEG_TURBO_SOURCES})
+add_subdirectory(libs/libjpeg-turbo/simd)
 
 add_library(jpeg-turbo STATIC ${JPEG_TURBO_SOURCES} $<TARGET_OBJECTS:simd> ${SIMD_OBJS})
 target_compile_options(jpeg-turbo PRIVATE -DTURBO -Ofast)
@@ -173,7 +173,7 @@ set(JPEG_SOURCES jmemnobs.c jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c
         jidctflt.c jidctfst.c jidctint.c jquant1.c jquant2.c jutils.c jmemmgr.c cderror.h
         cdjpeg.h jdct.h jinclude.h jmemsys.h jpegint.h jversion.h transupp.h )
 
-PREPEND(JPEG_SOURCES libjpeg/ ${JPEG_SOURCES})
+PREPEND(JPEG_SOURCES libs/libjpeg/ ${JPEG_SOURCES})
 add_library(jpeg STATIC ${JPEG_SOURCES})
 target_compile_options(jpeg PRIVATE -DVANILA -Ofast)
 #####################################################################
@@ -203,7 +203,7 @@ set(PROTOBUF any_lite.cc arena.cc extension_set.cc generated_enum_util.cc
         util/json_util.cc  util/message_differencer.cc  util/time_util.cc  util/type_resolver_util.cc
         wire_format.cc  wrappers.pb.cc)
 
-PREPEND(PROTOBUF protobuf/src/google/protobuf/ ${PROTOBUF})
+PREPEND(PROTOBUF libs/protobuf/src/google/protobuf/ ${PROTOBUF})
 
 add_library(protobuf STATIC ${PROTOBUF})
 #####################################################################
@@ -211,7 +211,7 @@ add_library(protobuf STATIC ${PROTOBUF})
 #####################################################################
 # lz4
 #####################################################################
-set(LZ4_DIR lz4/lib/)
+set(LZ4_DIR libs/lz4/lib/)
 set(SOURCES_LZ4 ${LZ4_DIR}lz4.c ${LZ4_DIR}lz4hc.c ${LZ4_DIR}lz4.h ${LZ4_DIR}lz4hc.h ${LZ4_DIR}xxhash.c ${LZ4_DIR}xxhash.h)
 add_library(lz4 ${SOURCES_LZ4})
 include_directories(${LZ4_DIR})
@@ -220,7 +220,7 @@ include_directories(${LZ4_DIR})
 #####################################################################
 # crc32c
 #####################################################################
-file(GLOB CRC32C_SOURCES crc32c/src/*.cc crc32c/src/*.h)
+file(GLOB CRC32C_SOURCES libs/crc32c/src/*.cc crc32c/src/*.h)
 add_library(crc32c STATIC ${CRC32C_SOURCES})
 #####################################################################
 
@@ -228,20 +228,20 @@ add_library(crc32c STATIC ${CRC32C_SOURCES})
 #####################################################################
 # fsal
 #####################################################################
-file(GLOB FSAL_SOURCES fsal/sources/*.cpp fsal/sources/*.h)
+file(GLOB FSAL_SOURCES libs/fsal/sources/*.cpp fsal/sources/*.h)
 add_library(fsal STATIC ${FSAL_SOURCES})
 #####################################################################
 
 #####################################################################
 # Includes
 #####################################################################
-include_directories(zlib)
-include_directories(fsal/sources)
-include_directories(libpng)
-include_directories(pybind11/include)
-include_directories(${CMAKE_BINARY_DIR}/libpng)
-include_directories(protobuf/src)
-include_directories(crc32c/include)
+include_directories(libs/zlib)
+include_directories(libs/fsal/sources)
+include_directories(libs/libpng)
+include_directories(libs/pybind11/include)
+include_directories(${CMAKE_BINARY_DIR}/libs/libpng)
+include_directories(libs/protobuf/src)
+include_directories(libs/crc32c/include)
 include_directories(${CMAKE_BINARY_DIR}/libjpeg-turbo)
 include_directories(${PYTHON_INCLUDE_DIR})
 include_directories(sources)

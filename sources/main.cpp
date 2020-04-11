@@ -307,6 +307,10 @@ PYBIND11_MODULE(_dareblopy, m)
 	{
 		fsal::FileSystem fs;
 		auto archive_file = fs.Open(filename, fsal::Mode::kRead, true);
+		if (!archive_file)
+		{
+			throw runtime_error("Can't open archive. File: %s not found", filename);
+		}
 		auto zipreader = new fsal::ZipReader;
 		zipreader->OpenArchive(archive_file);
 		return new fsal::Archive(fsal::ArchiveReaderInterfacePtr(static_cast<fsal::ArchiveReaderInterface*>(zipreader)));
@@ -314,6 +318,10 @@ PYBIND11_MODULE(_dareblopy, m)
 
 	m.def("open_zip_archive", [](fsal::File file)
 	{
+		if (!file)
+		{
+			throw runtime_error("Can't open archive, argument `file` is None");
+		}
 		auto* zipreader = new fsal::ZipReader();
 		zipreader->OpenArchive(file);
 		return new fsal::Archive(fsal::ArchiveReaderInterfacePtr(static_cast<fsal::ArchiveReaderInterface*>(zipreader)));

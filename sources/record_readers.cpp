@@ -35,12 +35,16 @@ inline uint32_t Unmask(uint32_t masked_crc)
 RecordReader::RecordReader(fsal::File file): m_offset(0), m_file(std::move(file))
 {
 	// Does not handle compression yet
+	if (!m_file)
+		throw runtime_error("Can't create RecordReader. Given file is None");
 }
 
 RecordReader::RecordReader(const std::string& file): m_offset(0)
 {
 	fsal::FileSystem fs;
 	m_file = fs.Open(file);
+	if (!m_file)
+		throw runtime_error("Can't create RecordReader. Can't find file %", file.c_str());
 	// Does not handle compression yet
 }
 
@@ -69,7 +73,7 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 
 	if (Unmask(masked_crc) != crc32c_value(dst, size))
 	{
-		throw runtime_error("Corrupted record. Error reading record at offset %zd. Record file: %s", offset, m_file.GetPath().c_str());
+		throw runtime_error("Corrupted record, CRC32 didn't match. Error reading record at offset %zd. Record file: %s", offset, m_file.GetPath().c_str());
 	}
 	return true;
 }

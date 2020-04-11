@@ -213,6 +213,11 @@ PYBIND11_MODULE(_dareblopy, m)
 					}
 				}
 				return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
+			})
+			.def("get_metadata", [](RecordReader& self)
+			{
+				auto meta = self.GetMetadata();
+				std::make_tuple(meta.file_size, meta.data_size, meta.entries);
 			});
 
 	py::class_<Records::RecordParser::FixedLenFeature>(m, "FixedLenFeature")

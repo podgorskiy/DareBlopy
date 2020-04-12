@@ -153,14 +153,18 @@ static py::object read_jpg_as_numpy(const fsal::File& fp, bool use_turbo)
 		fp.Read((uint8_t*)data, size, &retSize);
 	}
 
+	py::object result;
+
 	if (use_turbo)
 	{
-		return decode_jpeg_turbo(data, size);
+		result = decode_jpeg_turbo(data, size);
 	}
 	else
 	{
-		return decode_jpeg_vanila(data, size);
+		result = decode_jpeg_vanila(data, size);
 	}
+	free(data);
+	return result;
 }
 
 PYBIND11_MODULE(_dareblopy, m)

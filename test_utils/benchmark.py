@@ -10,7 +10,7 @@ class Benchmark:
     def add(self, name, baseline, dareblopy, dareblopy_turbo=None, prehit=()):
         self.schedule.append((name, baseline, dareblopy, dareblopy_turbo, prehit))
 
-    def run(self):
+    def run(self, title, label_baseline, output_file):
         results = []
         for name, baseline, dareblopy, dareblopy_turbo, prehit in self.schedule:
             print('\n' + '#' * 80)
@@ -43,16 +43,17 @@ class Benchmark:
 
         fig, ax = plt.subplots(figsize=(12, 6), dpi=120, facecolor='w', edgecolor='k')
 
-        rects1 = ax.bar(x - width * 1.0 + 0.5 * width * np.logical_not(has_turbo), [x[1] for x in results], width, label='Python + zipfile + PIL + numpy')
+        rects1 = ax.bar(x - width * 1.0 + 0.5 * width * np.logical_not(has_turbo), [x[1] for x in results], width, label=label_baseline)
         rects2 = ax.bar(x - width * 0.0 + 0.5 * width * np.logical_not(has_turbo), [x[2] for x in results], width, label='Python + DareBlopy')
-        rects3 = ax.bar(x + width * has_turbo, [x[3] for x in results] * has_turbo, width, label='Python + DareBlopy-turbo')
+        if np.any(has_turbo):
+            rects3 = ax.bar(x + width * has_turbo, [x[3] for x in results] * has_turbo, width, label='Python + DareBlopy-turbo')
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
         ax.set_ylabel('Running time, [ms]. Lower is better')
-        ax.set_title('Running time of DareBlopy and equivalent python code')
+        ax.set_title(title)
         ax.set_xticks(x)
         ax.set_xticklabels([x[0] for x in results])
-        ax.legend(loc=4)
+        ax.legend(loc=2)
 
         def autolabel(rects, show=None):
             if show is None:
@@ -68,11 +69,12 @@ class Benchmark:
 
         autolabel(rects1)
         autolabel(rects2)
-        autolabel(rects3, has_turbo)
+        if np.any(has_turbo):
+            autolabel(rects3, has_turbo)
 
         fig.tight_layout()
 
-        fig.savefig('test_utils/benchmark_results.png')
+        fig.savefig(output_file)
 
 
 def timeit(method):
@@ -92,3 +94,33 @@ def timeit(method):
         print('Total: %r  %2.2f ms' % (method.__name__, ds * 1000))
         return ds * 1000
     return timed
+
+
+def autolabel(ax, rects, show=None):
+    if show is None:
+        show = np.ones(len(rects))
+    for rect, s in zip(rects, show):
+        if s:
+            height = rect.get_height()
+            ax.annotate('{:.2f}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3),
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+
+
+def do_simple_plot(results, figsize, title, output_file):
+    fig, ax = plt.subplots(figsize=figsize, dpi=120, facecolor='w', edgecolor='k')
+    x = np.arange(len(results))
+    width = 0.2
+    rects1 = ax.bar(x, [x[0] for x in results], width)
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Running time, [ms]. Lower is better')
+    ax.set_title(title)
+    ax.set_xticks(x)
+    ax.set_xticklabels([x[1] for x in results])
+
+    autolabel(ax, rects1)
+    fig.tight_layout()
+
+    fig.savefig(output_file)

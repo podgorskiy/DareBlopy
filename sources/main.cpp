@@ -237,7 +237,7 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("parse_example", &Records::RecordParser::ParseExample);
 
 	py::class_<RecordYielderBasic>(m, "RecordYielderBasic")
-			.def(py::init<std::vector<std::string>&>())
+			.def(py::init<std::vector<std::string>&>(), py::arg("filenames"))
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;
@@ -246,7 +246,8 @@ PYBIND11_MODULE(_dareblopy, m)
 	        .def("next_n", &RecordYielderBasic::GetNextN, py::return_value_policy::take_ownership);
 
 	py::class_<RecordYielderRandomized>(m, "RecordYielderRandomized")
-			.def(py::init<std::vector<std::string>&, int, uint64_t, int>())
+			.def(py::init<std::vector<std::string>&, int, uint64_t, int>(),
+			        py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"))
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;
@@ -255,7 +256,8 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("next_n", &RecordYielderRandomized::GetNextN, py::return_value_policy::take_ownership);
 
 	py::class_<ParsedRecordYielderRandomized>(m, "ParsedRecordYielderRandomized")
-			.def(py::init<py::object, std::vector<std::string>&, int, uint64_t, int>())
+			.def(py::init<py::object, std::vector<std::string>&, int, uint64_t, int>(),
+			        py::arg("parser"), py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"))
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;

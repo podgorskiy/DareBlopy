@@ -105,8 +105,8 @@ inline std::function<void*(size_t)> GetBytesAllocator(PyBytesObject*& bytesObjec
 	{
 		// here we overallocate by sizeof(uint32_t) to allow sizeof(uint32_t) buffer overruns to enable subtle
 		// optimizations.
-		// e.g. readying a chunk of data with crc32c checksum in open `read` invocation. This might make small
-		// difference if disk is network attached.
+		// e.g. readying a chunk of data with crc32c checksum in open `read` invocation. This might make a small
+		// difference if the disk is network attached.
 		bytesObject = (PyBytesObject*) PyObject_Malloc(offsetof(PyBytesObject, ob_sval) + size + 1 + sizeof(uint32_t));
 		PyObject_INIT_VAR(bytesObject, &PyBytes_Type, size);
 		bytesObject->ob_shash = -1;

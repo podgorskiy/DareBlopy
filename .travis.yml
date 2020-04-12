@@ -36,7 +36,9 @@ before_script:
   - popd
 
 install:
-  - pip install wheel
+  - pip install wheel Pillow numpy
 script:
-  - python setup.py bdist_wheel -d wheel/
+#  - python setup.py bdist_wheel -d wheel/
+  - sudo python setup.py install
+  - python test_dareblopy.py
 #  - python test_dareblopy.py

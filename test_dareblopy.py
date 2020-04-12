@@ -90,18 +90,16 @@ class FileAndImageReadingOps(unittest.TestCase):
         self.assertEqual(b1, b2)
         self.assertEqual(b1, b3)
 
-    def test_reading_to_bytes_from_zip(self):
+    def test_reading_to_numpy_from_zip(self):
         archive = zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')
         s = archive.open('0.jpg')
-        b1 = s.read()
+        image = PIL.Image.open(s)
+        ndarray1 = np.array(image)
 
         archive = db.open_zip_archive("test_utils/test_image_archive.zip")
-        b2 = archive.open_as_bytes('0.jpg')
+        ndarray2 = archive.read_jpg_as_numpy('0.jpg')
 
-        b3 = archive.open('0.jpg').read()
-
-        self.assertEqual(b1, b2)
-        self.assertEqual(b1, b3)
+        self.assertTrue(np.all(ndarray1 == ndarray2))
 
 
 class TFRecordsReading(unittest.TestCase):

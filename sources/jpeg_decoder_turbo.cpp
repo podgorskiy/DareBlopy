@@ -13,9 +13,21 @@ struct my_error_mgr {
 	void (*emit_message) (j_common_ptr, int);
 	boolean warning, stopOnWarning;
 };
+static void my_error_exit(j_common_ptr cinfo)
+{
+  my_error_mgr* myerr = (my_error_mgr *) cinfo->err;
+  jpeg_destroy_decompress((jpeg_decompress_struct*)cinfo);
+  throw runtime_error("Error reading file JPEG. JPEG code has signaled an error: %s", cinfo->err->jpeg_message_table[cinfo->err->msg_code]);
+}
+
 
 ndarray_uint8 decode_jpeg_turbo(void* data, size_t size)
 {
+	if (data == nullptr)
+	{
+		throw runtime_error("Error reading file JPEG. Got nullptr to decompress");
+	}
+
 	static jpeg_decompress_struct cinfo;
 	static my_error_mgr jerr;
 	JSAMPARRAY buffer;		/* Output row buffer */
@@ -28,15 +40,8 @@ ndarray_uint8 decode_jpeg_turbo(void* data, size_t size)
 		if (initialized == false)
 		{
 			cinfo.err = jpeg_std_error(&jerr.pub);
+            jerr.pub.error_exit = my_error_exit;
 
-			if (setjmp(jerr.setjmp_buffer))
-			{
-				/* If we get here, the JPEG code has signaled an error.
-				 * We need to clean up the JPEG object, close the input file, and return.
-				 */
-				jpeg_destroy_decompress(&cinfo);
-				throw runtime_error("Error reading file JPEG. JPEG code has signaled an error.");
-			}
 			/* Now we can initialize the JPEG decompression object. */
 			jpeg_create_decompress(&cinfo);
 			initialized = true;

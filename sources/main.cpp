@@ -400,25 +400,28 @@ PYBIND11_MODULE(_dareblopy, m)
 		.def("read_jpg_as_numpy", [](fsal::Archive& self, const std::string& filepath, bool use_turbo)
 		{
 			size_t size = 0;
-			fsal::File f;
-			void* data;
+			std::shared_ptr<uint8_t> data;
 			{
 				py::gil_scoped_release release;
-				f = self.OpenFile(filepath);
+				auto alloc = [&size, &data](size_t s)
+				{
+					size = s;
+					data = std::shared_ptr<uint8_t>((uint8_t*)malloc(size), [](uint8_t*p) {free(p);});
+					return data.get();
+				};
+				void* f = self.OpenFile(filepath, alloc);
 				if (!f)
 				{
 					throw runtime_error("Can't open file: %s", filepath.c_str());
 				}
-				size = f.GetSize();
-				data = f.GetDataPointer();
 			}
 			if (use_turbo)
 			{
-				return decode_jpeg_turbo(data, size);
+				return decode_jpeg_turbo(data.get(), size);
 			}
 			else
 			{
-				return decode_jpeg_vanila(data, size);
+				return decode_jpeg_vanila(data.get(), size);
 			}
 		},  py::arg("filename"),  py::arg("use_turbo") = false)
 		.def("exists", [](fsal::Archive& self, const std::string& filepath){

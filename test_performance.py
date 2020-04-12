@@ -5,6 +5,7 @@ import PIL.Image
 import io
 import zipfile
 import numpy as np
+import matplotlib.pyplot as plt
 import dareblopy as db
 from test_utils import benchmark
 
@@ -123,36 +124,48 @@ bm.add('reading jpeg to numpy from zip',
 bm.run()
 
 
-filenames = ['test_utils/test-r00.tfrecords',
-             'test_utils/test-r01.tfrecords',
-             'test_utils/test-r02.tfrecords',
-             'test_utils/test-r03.tfrecords']
+##################################################################
+# Benchmarking different record reading strategies
+##################################################################
+filenames = ['test_utils/test-large-r00.tfrecords',
+             'test_utils/test-large-r01.tfrecords',
+             'test_utils/test-large-r02.tfrecords',
+             'test_utils/test-large-r03.tfrecords',
+             'test_utils/test-large-r00.tfrecords',
+             'test_utils/test-large-r01.tfrecords',
+             'test_utils/test-large-r02.tfrecords',
+             'test_utils/test-large-r03.tfrecords']
 
 if not all(os.path.exists(x) for x in filenames):
     raise RuntimeError('Could not find tfrecords. You need to run test_utils/make_tfrecords.py')
 
 
+results = []
+
+
 @benchmark.timeit
 def simple_reading_of_records():
+    records = []
     for filename in filenames:
         rr = db.RecordReader(filename)
-        records = list(rr)
+        records += list(rr)
 
 
-simple_reading_of_records()
+results.append((simple_reading_of_records(), "Reading records with\nRecordReader\nNo parsing"))
 
 
 @benchmark.timeit
 def test_yielder_basic():
     record_yielder = db.RecordYielderBasic(filenames)
+    records = []
     while True:
         try:
-            batch = record_yielder.next_n(32)
+            records += record_yielder.next_n(32)
         except StopIteration:
             break
 
 
-test_yielder_basic()
+results.append((test_yielder_basic(), "Reading records with\nRecordYielderBasic\nNo parsing"))
 
 
 @benchmark.timeit
@@ -163,14 +176,15 @@ def test_yielder_randomized():
     }
     parser = db.RecordParser(features, False)
     record_yielder = db.ParsedRecordYielderRandomized(parser, filenames, 64, 1, 0)
+    records = []
     while True:
         try:
-            batch = record_yielder.next_n(32)
+            records += record_yielder.next_n(32)
         except StopIteration:
             break
 
 
-test_yielder_randomized()
+results.append((test_yielder_randomized(), "Reading records with\nParsedRecordYielderRandomized\nHas parsing"))
 
 
 @benchmark.timeit
@@ -181,14 +195,15 @@ def test_yielder_randomized_parallel():
     }
     parser = db.RecordParser(features, True)
     record_yielder = db.ParsedRecordYielderRandomized(parser, filenames, 64, 1, 0)
+    records = []
     while True:
         try:
-            batch = record_yielder.next_n(32)
+            records += record_yielder.next_n(32)
         except StopIteration:
             break
 
 
-test_yielder_randomized_parallel()
+results.append((test_yielder_randomized_parallel(), "Reading records with\nParsedRecordYielderRandomized\n +parallel parsing\nHas parsing"))
 
 
 @benchmark.timeit
@@ -197,84 +212,123 @@ def test_ParsedTFRecordsDatasetIterator():
         #'shape': db.FixedLenFeature([3], db.int64),
         'data': db.FixedLenFeature([3, 256, 256], db.uint8)
     }
-    dl = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, 32, 128))
-    b = list(dl)
+    iterator = db.ParsedTFRecordsDatasetIterator(filenames, features, 32, 64)
+    records = []
+    for batch in iterator:
+        records += batch
 
 
-test_ParsedTFRecordsDatasetIterator()
+results.append((test_ParsedTFRecordsDatasetIterator(), "Reading records with\nParsedTFRecordsDatasetIterator\n +parallel parsing\nHas parsing"))
 
 
-rr = db.RecordReader('test_utils/test-small-r00.tfrecords')
-records = list(rr)
-record = records[0]
-
-features = {
-    'shape': db.FixedLenFeature([3], db.int64),
-    'data': db.FixedLenFeature([], db.string)}
-
-parser = db.RecordParser(features)
-
-shape = np.zeros(3, dtype=np.int64)
-data = np.asarray([bytes()], dtype=object)
-
-parser.parse_single_example_inplace(record, [shape, data], 0)
-
-data = np.frombuffer(data[0], dtype=np.uint8).reshape(shape)
-
-print(shape)
-print(data)
+@benchmark.timeit
+def test_ParsedTFRecordsDatasetIterator_and_dataloader():
+    features = {
+        #'shape': db.FixedLenFeature([3], db.int64),
+        'data': db.FixedLenFeature([3, 256, 256], db.uint8)
+    }
+    iterator = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, 32, 64), worker_count=6)
+    records = []
+    for batch in iterator:
+        records += batch
 
 
-features = {
-    'data': db.FixedLenFeature([3, 32, 32], db.uint8)}
-
-parser = db.RecordParser(features)
-
-data = np.zeros([3, 32, 32], dtype=np.uint8)
-
-parser.parse_single_example_inplace(record, [data], 0)
-
-print(data)
-
-features = {
-    'shape': db.FixedLenFeature([3], db.int64),
-    'data': db.FixedLenFeature([], db.string)}
-
-parser = db.RecordParser(features)
-
-shape, data = parser.parse_single_example(record)
-
-print(shape)
-print(data)
+results.append((test_ParsedTFRecordsDatasetIterator_and_dataloader(), "Reading records with\nParsedTFRecordsDatasetIterator\n+multy worker dataloader\nHas parsing"))
 
 
-features = {
-    'shape': db.FixedLenFeature([3], db.int64),
-    'data': db.FixedLenFeature([3, 32, 32], db.uint8)
-}
-    #'data': _vfsdl.FixedLenFeature([], _vfsdl.string)}
-
-parser = db.RecordParser(features, False)
-
-shape, data = parser.parse_example(records)
-
-print(shape)
-print(data)
+fig, ax = plt.subplots(figsize=(16, 6), dpi=120, facecolor='w', edgecolor='k')
+x = np.arange(len(results))
+width = 0.2
+rects1 = ax.bar(x, [x[0] for x in results], width)
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Running time, [ms]. Lower is better')
+ax.set_title('Reading tfrecords')
+ax.set_xticks(x)
+ax.set_xticklabels([x[1] for x in results])
 
 
-data_gold = data
+def autolabel(rects, show=None):
+    if show is None:
+        show = np.ones(len(rects))
+    for rect, s in zip(rects, show):
+        if s:
+            height = rect.get_height()
+            ax.annotate('{:.2f}'.format(height),
+                        xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3),
+                        textcoords="offset points",
+                        ha='center', va='bottom')
 
-features={
-    'shape': db.FixedLenFeature([3], db.int64),
-    'data': db.FixedLenFeature([3, 32, 32], db.uint8)
-}
 
-parser = db.RecordParser(features, True)
+autolabel(rects1)
+fig.tight_layout()
 
-shape, data = parser.parse_example(records)
+fig.savefig('test_utils/benchmark_reading_tfrecords.png')
 
-print(shape.shape)
-print(data.shape)
 
-print(np.all(data_gold == data))
+import tensorflow as tf
 
+
+filenames = ['test_utils/test-large-r00.tfrecords',
+             'test_utils/test-large-r01.tfrecords',
+             'test_utils/test-large-r02.tfrecords',
+             'test_utils/test-large-r03.tfrecords',
+             'test_utils/test-large-r00.tfrecords',
+             'test_utils/test-large-r01.tfrecords',
+             'test_utils/test-large-r02.tfrecords',
+             'test_utils/test-large-r03.tfrecords']
+
+results = []
+
+
+
+@benchmark.timeit
+def reading_tf_records_from_tensorflow_withoutdecoding():
+    raw_dataset = tf.data.TFRecordDataset(filenames)
+
+    feature_description = {
+        'data': tf.io.FixedLenFeature([], tf.string)
+    }
+
+    records = []
+    for batch in raw_dataset.batch(32, drop_remainder=True):
+        s = tf.io.parse_example(batch, feature_description)['data']
+        records.append(s)
+
+
+
+results.append((reading_tf_records_from_tensorflow_withoutdecoding(), "Reading rfrecords with\nTensorflow\nwithout decoding"))
+
+
+@benchmark.timeit
+def reading_tf_records_from_tensorflow():
+    raw_dataset = tf.data.TFRecordDataset(filenames)
+
+    feature_description = {
+        'data': tf.io.FixedLenFeature([], tf.string)
+    }
+
+    records = []
+    for batch in raw_dataset.batch(32, drop_remainder=True):
+        s = tf.io.parse_example(batch, feature_description)['data']
+        data = tf.reshape(tf.io.decode_raw(s, tf.uint8), [-1, 3, 256, 256])
+        records.append(data)
+
+
+
+results.append((reading_tf_records_from_tensorflow(), "Reading rfrecords with\nTensorflow"))
+
+
+@benchmark.timeit
+def reading_tf_records_from_dareblopy():
+
+    features = {
+        'data': db.FixedLenFeature([3, 256, 256], db.uint8)
+    }
+    iterator = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, 32, 64), worker_count=6)
+    records = []
+    for batch in iterator:
+        records += batch
+
+
+results.append((reading_tf_records_from_dareblopy(), "Reading rfrecords with\nDareBlopy"))

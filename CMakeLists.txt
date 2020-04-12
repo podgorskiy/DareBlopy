@@ -269,7 +269,7 @@ add_library(dareblopy SHARED ${SOURCES})
 #####################################################################
 # Linkage
 #####################################################################
-set(LIBRARIES rt m  stdc++fs fsal jpeg jpeg-turbo png_static zlib_static protobuf crc32c lz4 ${PYTHON_LIBRARY})
+set(LIBRARIES rt m  stdc++fs fsal jpeg jpeg-turbo png_static zlib_static protobuf crc32c lz4 gomp ${PYTHON_LIBRARY})
 target_link_libraries(dareblopy ${LIBRARIES})
 target_link_libraries(fsal stdc++fs)
 SET_TARGET_PROPERTIES(dareblopy PROPERTIES PREFIX "_")

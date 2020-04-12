@@ -14,7 +14,7 @@
 
 
 #include "example.h"
-
+#include <omp.h>
 
 namespace Records
 {
@@ -243,7 +243,7 @@ bool Records::FeatureDecode(std::size_t out_index, const std::string& key, const
 	}
 }
 
-Records::RecordParser::RecordParser(const py::dict& features, bool run_parallel, int worker_count): m_run_parallel(run_parallel), m_threadPool(worker_count)
+Records::RecordParser::RecordParser(const py::dict& features, bool run_parallel, int worker_count): m_run_parallel(run_parallel)//, m_threadPool(worker_count)
 {
 	for (auto item : features)
 	{
@@ -389,17 +389,18 @@ py::list Records::RecordParser::ParseExample(const std::vector<std::string>& ser
 			}
 		}
 
+		int l = serialized.size();
 		if (m_run_parallel)
 		{
-			ThreadPool::Kernel k =[this, &serialized, &tensor_ptrs](ThreadPool::threadIdx idx, ThreadPool::blockDim)
+            #pragma omp parallel for
+			for (int idx = 0; idx < l; ++idx)
 			{
 				ParseSingleExampleImpl(serialized[idx], tensor_ptrs, idx);
-			};
-			m_threadPool.ParallelFor(&k, serialized.size());
+			}
 		}
 		else
 		{
-			for (int idx = 0, l = serialized.size(); idx < l; ++idx)
+			for (int idx = 0; idx < l; ++idx)
 			{
 				ParseSingleExampleImpl(serialized[idx], tensor_ptrs, idx);
 			}

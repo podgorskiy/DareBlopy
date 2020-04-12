@@ -28,6 +28,9 @@
 class HIDDEN RecordYielderBasic
 {
 public:
+	RecordYielderBasic(const RecordYielderBasic&) = delete; // non construction-copyable
+	RecordYielderBasic& operator=( const RecordYielderBasic&) = delete; // non copyable
+
 	explicit RecordYielderBasic(std::vector<std::string>& filenames)
 	{
 		m_filenames = filenames;
@@ -131,6 +134,9 @@ private:
 class HIDDEN RecordYielderRandomized
 {
 public:
+	RecordYielderRandomized(const RecordYielderRandomized&) = delete; // non construction-copyable
+	RecordYielderRandomized& operator=( const RecordYielderRandomized&) = delete; // non copyable
+
 	explicit RecordYielderRandomized(std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch)
 	{
 		m_filenames = filenames;
@@ -247,6 +253,9 @@ private:
 class HIDDEN ParsedRecordYielderRandomized
 {
 public:
+	ParsedRecordYielderRandomized(const ParsedRecordYielderRandomized&) = delete; // non construction-copyable
+	ParsedRecordYielderRandomized& operator=( const ParsedRecordYielderRandomized&) = delete; // non copyable
+
 	explicit ParsedRecordYielderRandomized(py::object parser, std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch)
 	{
 		m_parser_obj = parser;
@@ -366,64 +375,3 @@ private:
 	py::object m_parser_obj;
 	Records::RecordParser* m_parser;
 };
-
-
-//class HIDDEN RecordYielderParallel
-//{
-//public:
-//	explicit RecordYielderParallel(std::vector<std::string>& filenames, int buffsize, int parallelism, uint64_t seed, int epoch)
-//	{
-//		m_parallelism = parallelism;
-//		m_filenames = filenames;
-//
-//		m_buffsize = buffsize;
-//		uint64_t hash = ((uint64_t)std::hash<int>{}(seed)) ^ ((uint64_t)std::hash<int>{}(epoch) << 1);
-//		std::mt19937_64 shuffle_rnd(hash);
-//		std::shuffle(m_filenames.begin(), m_filenames.end(), shuffle_rnd);
-//
-//		m_current_file = 0;
-//		m_rr = nullptr;
-//		m_rnd = std::mt19937_64(std::hash<int>{}(hash) ^ ((uint64_t)std::hash<int>{}(seed) << 1));
-//		m_reached_end = false;
-//	}
-//
-//	virtual ~RecordYielderParallel()
-//	{
-//		delete m_rr;
-//	}
-//
-//	py::object GetNext()
-//	{
-//		std::unique_lock<std::mutex> locker(m_queueLock);
-//
-//		while (m_buffer.size() < m_buffsize / 2 && !m_reached_end)
-//		{
-//			m_buffer_enough.wait(locker);
-//		}
-//
-//		if (!m_buffer.empty())
-//		{
-//			py::object value = std::move(m_buffer.back());
-//			m_buffer.pop_back();
-//			return std::move(value);
-//		}
-//		else
-//		{
-//			throw py::stop_iteration();
-//		}
-//	}
-//
-//private:
-//	std::mutex m_queueLock;
-//	std::condition_variable m_buffer_enough;
-//	std::condition_variable m_emptyQueue;
-//	bool m_reached_end;
-//
-//	std::mt19937_64 m_rnd;
-//	int m_parallelism;
-//	std::vector<std::string> m_filenames;
-//	std::vector<py::object> m_buffer;
-//	int m_buffsize;
-//	RecordReader* m_rr;
-//	int m_current_file;
-//};

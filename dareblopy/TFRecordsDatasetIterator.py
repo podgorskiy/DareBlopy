@@ -26,6 +26,9 @@ class TFRecordsDatasetIterator:
         self.record_yielder = db.RecordYielderRandomized(filenames, buffer_size, seed, epoch)
         self.batch_size = batch_size
 
+    def __iter__(self):
+        return self
+
     def __next__(self):
         return self.record_yielder.next_n(self.batch_size)
 
@@ -34,9 +37,12 @@ class ParsedTFRecordsDatasetIterator:
     def __init__(self, filenames, features, batch_size, buffer_size=1000, seed=None, epoch=0):
         if seed is None:
             seed = np.uint64(time.time() * 1000)
-        self.parser = db.RecordParser(features, False)
+        self.parser = db.RecordParser(features, True)
         self.record_yielder = db.ParsedRecordYielderRandomized(self.parser, filenames, buffer_size, seed, epoch)
         self.batch_size = batch_size
+
+    def __iter__(self):
+        return self
 
     def __next__(self):
         return self.record_yielder.next_n(self.batch_size)

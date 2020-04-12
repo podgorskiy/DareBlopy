@@ -260,7 +260,7 @@ for file in jpeg_vanila:
 
 libs = {
     'darwin': [],
-    'posix': ["rt", "m", "stdc++fs"],
+    'posix': ["rt", "m", "stdc++fs", "gomp"],
     'win32': [],
 }
 
@@ -277,8 +277,8 @@ extra_compile_args = {
 }
 
 extra_compile_cpp_args = {
-    'darwin': ['-std=c++14', '-lstdc++fs', '-Ofast', '-flto'],
-    'posix': ['-std=c++14', '-lstdc++fs', '-Ofast', '-flto'],
+    'darwin': ['-std=c++14', '-lstdc++fs', '-Ofast', '-flto', '-fopenmp'],
+    'posix': ['-std=c++14', '-lstdc++fs', '-Ofast', '-flto', '-fopenmp'],
     'win32': [],
 }
 

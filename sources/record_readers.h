@@ -32,6 +32,9 @@ struct RecordHeader
 class RecordReader
 {
 public:
+	RecordReader(const RecordReader&) = delete; // non construction-copyable
+	RecordReader& operator=( const RecordReader&) = delete; // non copyable
+
 	struct Metadata
 	{
 		int64_t file_size = -1;

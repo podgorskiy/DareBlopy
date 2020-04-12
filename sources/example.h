@@ -17,7 +17,6 @@
 #include "protobuf/example.pb.h"
 #include "MemRefFile.h"
 #include "common.h"
-#include "thread_pool.h"
 
 namespace Records
 {
@@ -64,7 +63,6 @@ namespace Records
 		void ParseSingleExampleImpl(const std::string& serialized, std::vector<void*>& output, int batch_index);
 
 		std::vector<FixedLenFeature> fixed_len_features;
-		ThreadPool m_threadPool;
 		bool m_run_parallel;
 	};
 }

@@ -55,7 +55,8 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 		throw runtime_error("Record size too large %zd. Record file: %s", size, m_file.GetPath().c_str());
 	}
 
-	const size_t expected = size + sizeof(uint32_t);
+	const size_t expected = size + sizeof(uint32_t);    // reading data together with crc32.
+	                                                    // Preallocated buffer has sizeof(uint32) padding
 	size_t result = 0;
 	auto read_result = m_file.Read(dst, expected, &result);
 
@@ -70,6 +71,7 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 	}
 
 	const uint32_t masked_crc = *(uint32_t*)(dst + size);
+	*(uint32_t*)(dst + size) = 0;
 
 	if (Unmask(masked_crc) != crc32c_value(dst, size))
 	{
@@ -77,7 +79,6 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 	}
 	return true;
 }
-
 
 fsal::Status RecordReader::ReadRecord(size_t& offset, fsal::MemRefFile* mem_file)
 {
@@ -109,7 +110,7 @@ fsal::Status RecordReader::ReadRecord(size_t& offset, std::function<void*(size_t
 		return r;
 	}
 
-	uint8_t* data = (uint8_t*)alloc_func(header.length + sizeof(uint32_t));
+	auto* data = (uint8_t*)alloc_func(header.length);
 	ReadChecksummed(offset + sizeof(RecordHeader), header.length, data);
 
 	offset += sizeof(RecordHeader) + header.length + sizeof(uint32_t);

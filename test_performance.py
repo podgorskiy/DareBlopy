@@ -12,19 +12,23 @@ from test_utils import benchmark
 
 bm = benchmark.Benchmark()
 
+# unzip zipfile with images
+with zipfile.ZipFile("test_utils/test_image_archive.zip", 'r') as zip_ref:
+    zip_ref.extractall("test_utils/test_images")
+
 
 ##################################################################
 # Reading a file to bytes object
 ##################################################################
 def read_to_bytes_native():
-    for i in range(20000):
-        f = open('test_utils/test_image.jpg', 'rb')
+    for i in range(2000):
+        f = open('test_utils/test_images/%d.jpg' % (i % 200), 'rb')
         b = f.read()
 
 
 def read_to_bytes_db():
-    for i in range(20000):
-        b = db.open_as_bytes('test_utils/test_image.jpg')
+    for i in range(2000):
+        b = db.open_as_bytes('test_utils/test_images/%d.jpg' % (i % 200))
 
 
 bm.add('reading file to bytes',
@@ -36,24 +40,24 @@ bm.add('reading file to bytes',
 # Reading a jpeg image to numpy array
 ##################################################################
 def read_jpg_to_numpy_pil():
-    for i in range(600):
-        image = PIL.Image.open('test_utils/test_image.jpg')
+    for i in range(2000):
+        image = PIL.Image.open('test_utils/test_images/%d.jpg' % (i % 200))
         ndarray = np.array(image)
 
 
 def read_jpg_to_numpy_db():
-    for i in range(600):
-        ndarray = db.read_jpg_as_numpy('test_utils/test_image.jpg')
+    for i in range(2000):
+        ndarray = db.read_jpg_as_numpy('test_utils/test_images/%d.jpg' % (i % 200))
 
 
 def read_jpg_to_numpy_db_turbo():
-    for i in range(600):
-        ndarray = db.read_jpg_as_numpy('test_utils/test_image.jpg', True)
+    for i in range(2000):
+        ndarray = db.read_jpg_as_numpy('test_utils/test_images/%d.jpg' % (i % 200), True)
 
 
 bm.add('reading jpeg image to numpy',
-       baseline=read_to_bytes_native,
-       dareblopy=read_to_bytes_db,
+       baseline=read_jpg_to_numpy_pil,
+       dareblopy=read_jpg_to_numpy_db,
        dareblopy_turbo=read_jpg_to_numpy_db_turbo)
 
 
@@ -94,22 +98,22 @@ bm.add('reading files to bytes from zip',
 def read_jpg_to_numpy_from_zip_native():
     archive = zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')
 
-    for i in range(200):
-        s = archive.open('%d.jpg' % i)
+    for i in range(2000):
+        s = archive.open('%d.jpg' % (i % 200))
         image = PIL.Image.open(s)
         ndarray = np.array(image)
 
 
 def read_jpg_to_numpy_from_zip_db():
     archive = db.open_zip_archive("test_utils/test_image_archive.zip")
-    for i in range(200):
-        ndarray = archive.read_jpg_as_numpy('%d.jpg' % i)
+    for i in range(2000):
+        ndarray = archive.read_jpg_as_numpy('%d.jpg' % (i % 200))
 
 
 def read_jpg_to_numpy_from_zip_db_turbo():
     archive = db.open_zip_archive("test_utils/test_image_archive.zip")
-    for i in range(200):
-        ndarray = archive.read_jpg_as_numpy('%d.jpg' % i, True)
+    for i in range(2000):
+        ndarray = archive.read_jpg_as_numpy('%d.jpg' % (i % 200), True)
 
 
 bm.add('reading jpeg to numpy from zip',
@@ -283,6 +287,21 @@ results = []
 
 
 @benchmark.timeit
+def reading_tf_records_from_dareblopy():
+
+    features = {
+        'data': db.FixedLenFeature([3, 256, 256], db.uint8)
+    }
+    iterator = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, 32, 64), worker_count=6)
+    records = []
+    for batch in iterator:
+        records += batch
+
+
+results.append((reading_tf_records_from_dareblopy(), "Reading rfrecords with\nDareBlopy"))
+
+
+@benchmark.timeit
 def reading_tf_records_from_tensorflow_withoutdecoding():
     raw_dataset = tf.data.TFRecordDataset(filenames)
 
@@ -294,7 +313,6 @@ def reading_tf_records_from_tensorflow_withoutdecoding():
     for batch in raw_dataset.batch(32, drop_remainder=True):
         s = tf.io.parse_example(batch, feature_description)['data']
         records.append(s)
-
 
 
 results.append((reading_tf_records_from_tensorflow_withoutdecoding(), "Reading rfrecords with\nTensorflow\nwithout decoding"))
@@ -315,20 +333,4 @@ def reading_tf_records_from_tensorflow():
         records.append(data)
 
 
-
 results.append((reading_tf_records_from_tensorflow(), "Reading rfrecords with\nTensorflow"))
-
-
-@benchmark.timeit
-def reading_tf_records_from_dareblopy():
-
-    features = {
-        'data': db.FixedLenFeature([3, 256, 256], db.uint8)
-    }
-    iterator = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, 32, 64), worker_count=6)
-    records = []
-    for batch in iterator:
-        records += batch
-
-
-results.append((reading_tf_records_from_dareblopy(), "Reading rfrecords with\nDareBlopy"))

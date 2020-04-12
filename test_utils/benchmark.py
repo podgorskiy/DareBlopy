@@ -48,7 +48,7 @@ class Benchmark:
         rects3 = ax.bar(x + width * has_turbo, [x[3] for x in results] * has_turbo, width, label='Python + DareBlopy-turbo')
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
-        ax.set_ylabel('Running time, [ms]. Lowe is better')
+        ax.set_ylabel('Running time, [ms]. Lower is better')
         ax.set_title('Running time of DareBlopy and equivalent python code')
         ax.set_xticks(x)
         ax.set_xticklabels([x[0] for x in results])
@@ -78,7 +78,8 @@ class Benchmark:
 def timeit(method):
     def timed(*args, **kw):
         ds = 0.0
-        trials = 6
+        trials = 10
+        method(*args, **kw)
         for i in range(trials):
             ts = time.time()
             method(*args, **kw)

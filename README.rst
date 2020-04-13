@@ -1,3 +1,10 @@
+.. raw:: html
+
+  <div align="center">
+    <img src="https://podgorskiy.com/static/dareblopylogo.svg">
+  </div>
+
+
 **Da**\ ta **Re**\ ading **Blo**\ cks for **Py**\ thon is a python module that provides variety of C++ backed data reading primitives.
 It targets deep-learning needs, but it is framework agnostic.
 

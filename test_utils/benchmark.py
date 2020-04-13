@@ -10,7 +10,11 @@ class Benchmark:
     def add(self, name, baseline, dareblopy, dareblopy_turbo=None, prehit=()):
         self.schedule.append((name, baseline, dareblopy, dareblopy_turbo, prehit))
 
-    def run(self, title, label_baseline, output_file):
+    def run(self, title, label_baseline, output_file, loc, figsize=(12, 6), caption=None):
+        locmap = {'ul': 2, 'ur': 1, 'll': 3, 'lr': 4}
+        if loc in locmap:
+            loc = locmap[loc]
+
         results = []
         for name, baseline, dareblopy, dareblopy_turbo, prehit in self.schedule:
             print('\n' + '#' * 80)
@@ -41,39 +45,28 @@ class Benchmark:
 
         has_turbo = np.asarray([(x[2] != x[3]) for x in results])
 
-        fig, ax = plt.subplots(figsize=(12, 6), dpi=120, facecolor='w', edgecolor='k')
+        fig, ax = plt.subplots(figsize=figsize, dpi=120, facecolor='w', edgecolor='k')
 
         rects1 = ax.bar(x - width * 1.0 + 0.5 * width * np.logical_not(has_turbo), [x[1] for x in results], width, label=label_baseline)
-        rects2 = ax.bar(x - width * 0.0 + 0.5 * width * np.logical_not(has_turbo), [x[2] for x in results], width, label='Python + DareBlopy')
+        rects2 = ax.bar(x - width * 0.0 + 0.5 * width * np.logical_not(has_turbo), [x[2] for x in results], width, label='DareBlopy')
         if np.any(has_turbo):
-            rects3 = ax.bar(x + width * has_turbo, [x[3] for x in results] * has_turbo, width, label='Python + DareBlopy-turbo')
+            rects3 = ax.bar(x + width * has_turbo, [x[3] for x in results] * has_turbo, width, label='DareBlopy +libjpeg-turbo')
 
         # Add some text for labels, title and custom x-axis tick labels, etc.
         ax.set_ylabel('Running time, [ms]. Lower is better')
         ax.set_title(title)
         ax.set_xticks(x)
         ax.set_xticklabels([x[0] for x in results])
-        ax.legend(loc=2)
+        ax.legend(loc=loc)
 
-        def autolabel(rects, show=None):
-            if show is None:
-                show = np.ones(len(rects))
-            for rect, s in zip(rects, show):
-                if s:
-                    height = rect.get_height()
-                    ax.annotate('{:.2f}'.format(height),
-                                xy=(rect.get_x() + rect.get_width() / 2, height),
-                                xytext=(0, 3),
-                                textcoords="offset points",
-                                ha='center', va='bottom')
+        if caption:
+            fig.text(0.5, 0.03, caption, wrap=True, horizontalalignment='center', fontsize=12)
+            plt.subplots_adjust(left=.1, right=0.9, top=0.92, bottom=0.22)
 
-        autolabel(rects1)
-        autolabel(rects2)
+        autolabel(ax, rects1)
+        autolabel(ax, rects2)
         if np.any(has_turbo):
-            autolabel(rects3, has_turbo)
-
-        fig.tight_layout()
-
+            autolabel(ax, rects3, has_turbo)
         fig.savefig(output_file)
 
 

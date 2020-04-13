@@ -28,7 +28,7 @@ def run_reading_to_bytes_benchmark():
         for i in range(2000):
             b = db.open_as_bytes('test_utils/test_images/%d.jpg' % (i % 200))
 
-    bm.add('reading file to bytes',
+    bm.add('reading files to `bytes` from filesystem',
            baseline=read_to_bytes_native,
            dareblopy=read_to_bytes_db)
 
@@ -54,15 +54,18 @@ def run_reading_to_bytes_benchmark():
             # picture = PIL.Image.open(picture_stream)
             # picture.show()
 
-    bm.add('reading files to bytes from zip',
+    bm.add('reading files to `bytes` from a zip archive',
            baseline=read_jpg_bytes_from_zip_native,
            dareblopy=read_jpg_bytes_from_zip_db,
            prehit=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
                            zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
     # Run everything and save plot
-    bm.run(title='Running time of DareBlopy and equivalent python code',
-           label_baseline='Python + zipfile',
-           output_file='test_utils/benchmark_reading_files.png')
+    bm.run(title='Running time of reading files to `bytes`\nfor DareBlopy and equivalent python code',
+           label_baseline='Python Standard Library + zipfile',
+           output_file='test_utils/benchmark_reading_files.png', loc='ul', figsize=(8, 6),
+           caption="Reading 200 jpeg files, each file ~30kb. Files are read to 'bytes object (no decoding). "
+                   "Reading is performed from filesystem and from a zip archive with no compression (storage type). "
+                   "All files are read 10 times and then measured time is averaged over 10 trials.")
 
 
 def run_reading_jpeg_to_numpy_benchmark():
@@ -118,9 +121,77 @@ def run_reading_jpeg_to_numpy_benchmark():
                            zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
 
     # Run everything and save plot
-    bm.run(title='Running time of DareBlopy and equivalent python code',
-           label_baseline='Python + zipfile + PIL + numpy',
-           output_file='test_utils/benchmark_reading_jpeg.png')
+    bm.run(title='Running time of reading jpeg files to numpy `ndarray`\nfor DareBlopy and equivalent python code',
+           label_baseline='Python Standard Library + zipfile\n + PIL + numpy',
+           output_file='test_utils/benchmark_reading_jpeg.png', loc='lr', figsize=(8, 6),
+           caption="Reading 200 jpeg files, each file is ~30kb and  has 256x256 resolution. "
+                   "Files are read to numpy `ndarray` (jpeg's are decoded). "
+                   "Reading is performed from filesystem and from a zip archive with no compression (storage type). "
+                   "All files are read 10 times and then measured time is averaged over 10 trials.")
+
+
+def run_reading_jpeg_to_numpy_benchmark_nat_storage():
+    bm = benchmark.Benchmark()
+
+    ##################################################################
+    # Reading a jpeg image to numpy array
+    ##################################################################
+    def read_jpg_to_numpy_pil():
+        for i in range(200):
+            image = PIL.Image.open('/data/for_benchmark/test_utils/test_images/%d.jpg' % (i % 200))
+            ndarray = np.array(image)
+
+    def read_jpg_to_numpy_db():
+        for i in range(200):
+            ndarray = db.read_jpg_as_numpy('/data/for_benchmark/test_utils/test_images/%d.jpg' % (i % 200))
+
+    def read_jpg_to_numpy_db_turbo():
+        for i in range(200):
+            ndarray = db.read_jpg_as_numpy('/data/for_benchmark/test_utils/test_images/%d.jpg' % (i % 200), True)
+
+    bm.add('reading jpeg image to numpy',
+           baseline=read_jpg_to_numpy_pil,
+           dareblopy=read_jpg_to_numpy_db,
+           dareblopy_turbo=read_jpg_to_numpy_db_turbo)
+
+    ##################################################################
+    # Reading jpeg images to numpy array from zip archive
+    ##################################################################
+    def read_jpg_to_numpy_from_zip_native():
+        archive = zipfile.ZipFile("/data/for_benchmark/test_utils/test_image_archive.zip", 'r')
+
+        for i in range(200):
+            s = archive.open('%d.jpg' % (i % 200))
+            image = PIL.Image.open(s)
+            ndarray = np.array(image)
+
+    def read_jpg_to_numpy_from_zip_db():
+        archive = db.open_zip_archive("/data/for_benchmark/test_utils/test_image_archive.zip")
+        for i in range(200):
+            ndarray = archive.read_jpg_as_numpy('%d.jpg' % (i % 200))
+
+    def read_jpg_to_numpy_from_zip_db_turbo():
+        archive = db.open_zip_archive("/data/for_benchmark/test_utils/test_image_archive.zip")
+        for i in range(200):
+            ndarray = archive.read_jpg_as_numpy('%d.jpg' % (i % 200), True)
+
+    bm.add('reading jpeg to numpy from zip',
+           baseline=read_jpg_to_numpy_from_zip_native,
+           dareblopy=read_jpg_to_numpy_from_zip_db,
+           dareblopy_turbo=read_jpg_to_numpy_from_zip_db_turbo,
+           prehit=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
+                           zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
+
+    # Run everything and save plot
+    bm.run(title='Running time of reading jpeg files to numpy `ndarray`\nfor DareBlopy and equivalent python code.\n'
+                 ' Reading from NAT storage',
+           label_baseline='Python Standard Library + zipfile\n + PIL + numpy',
+           output_file='test_utils/benchmark_reading_jpeg.png', loc='ur', figsize=(8, 6),
+           caption="Reading 200 jpeg files, each file is ~30kb and  has 256x256 resolution. "
+                   "Files are read to numpy `ndarray` (jpeg's are decoded). "
+                   "Reading is performed from filesystem and from a zip archive with no compression (storage type). "
+                   "In both cases, data is on a NAT storage. "
+                   "All files are read once and then measured time is averaged over 10 trials.")
 
 
 def run_reading_tfrecords_ablation_benchmark():
@@ -295,10 +366,12 @@ def run_reading_tfrecords_comparison_to_tensorflow_benchmark():
                              output_file='test_utils/benchmark_reading_tfrecords_comparion_to_tf.png')
 
 
-run_reading_to_bytes_benchmark()
-time.sleep(1.0)
+# run_reading_to_bytes_benchmark()
+# time.sleep(1.0)
 run_reading_jpeg_to_numpy_benchmark()
-time.sleep(1.0)
-run_reading_tfrecords_ablation_benchmark()
-time.sleep(1.0)
-run_reading_tfrecords_comparison_to_tensorflow_benchmark()
+# time.sleep(1.0)
+# run_reading_jpeg_to_numpy_benchmark_nat_storage()
+# time.sleep(1.0)
+# run_reading_tfrecords_ablation_benchmark()
+# time.sleep(1.0)
+# run_reading_tfrecords_comparison_to_tensorflow_benchmark()

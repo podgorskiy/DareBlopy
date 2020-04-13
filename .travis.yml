@@ -39,6 +39,5 @@ install:
   - pip install wheel Pillow numpy
 script:
 #  - python setup.py bdist_wheel -d wheel/
-  - sudo python setup.py install
+  - sudo python setup.py develop
   - python test_dareblopy.py
-#  - python test_dareblopy.py

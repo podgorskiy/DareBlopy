@@ -13,24 +13,32 @@
 # limitations under the License.
 # ==============================================================================
 
+import sys
+import os
 
-def handle_debugging():
-    import os
-    import sys
 
+def _handle_debugging():
     # if running debug session
     if os.path.exists("cmake-build-debug/"):
         print('Running Debugging session!')
-        sys.path.insert(0, "cmake-build-debug/")
-        # sys.path.insert(0, "cmake-build-release/")
-    del os
-    del sys
+        # sys.path.insert(0, "cmake-build-debug/")
+        sys.path.insert(0, "cmake-build-release/")
 
 
-handle_debugging()
+_handle_debugging()
 
 
 from _dareblopy import *
+
+# A hack to force sphinx to do the right thing
+if 'sphinx' in sys.modules:
+    print('Sphinx detected!!!')
+    del os
+    del sys
+    __all__ = dir()
+else:
+    del os
+    del sys
 
 import dareblopy.utils
 from dareblopy.data_loader import data_loader

@@ -171,16 +171,54 @@ PYBIND11_MODULE(_dareblopy, m)
 {
 	m.doc() = "_dareblopy - DareBlopy";
 
-	py::enum_<Records::DataType>(m, "DataType", py::arithmetic())
+	py::enum_<Records::DataType>(m, "DataType", py::arithmetic(), R"(
+	    Enumeration for :class:`.FixedLenFeature` dtype.
+
+	    Equivalent to `tf.string`, `tf.float32`, `tf.int64`
+	    Note:
+
+	        uint8 - is an alias for string, that enables reading directly to a preallocated numpy ndarray of a uint8 dtype
+	        and a given shape. This eliminates any additional copying/casting.
+			To use it, shape of the encoded numpy array most be known
+
+	    Example:
+
+	        ::
+
+	            features = {
+	                'shape': db.FixedLenFeature([3], db.int64),
+	                'data': db.FixedLenFeature([], db.string)
+	            }
+
+	)")
 			.value("string", Records::DataType::DT_STRING)
 			.value("float32", Records::DataType::DT_FLOAT)
 			.value("int64", Records::DataType::DT_INT64)
 			.value("uint8", Records::DataType::DT_UINT8)
 			.export_values();
 
-	py::class_<RecordReader>(m, "RecordReader")
-			.def(py::init<fsal::File>())
-			.def(py::init<const std::string&>())
+	py::class_<RecordReader>(m, "RecordReader", R"(
+	    An iterator that reads tfrecord file and returns raw records (protobuffer messages).
+	    Does not support compressed tfrecords. Performs crc32 check of read data.
+
+	    Args:
+	    	    file (File): a :ref:`.File` fileobject.
+	    	    filename (str): a filename of the file.
+
+	    Note:
+	    	    Contructor is overloaded and excepts either `file` (File) either `filename` (str)
+
+	    Example:
+
+	        ::
+
+	            rr = db.RecordReader('test_utils/test-small-r00.tfrecords')
+	            file_size, data_size, entries = rr.get_metadata()
+	            records = list(rr)
+
+	)")
+			.def(py::init<fsal::File>(), py::arg("file"))
+			.def(py::init<const std::string&>(), py::arg("filename"))
 			.def("read_record", [](RecordReader& self, size_t& offset)->py::object
 			{
 				PyBytesObject* bytesObject = nullptr;
@@ -196,7 +234,10 @@ PYBIND11_MODULE(_dareblopy, m)
 				}
 
 				return py::reinterpret_steal<py::object>((PyObject*)bytesObject);
-			})
+			}, R"(
+			    Reads a record at specific offset. In majority of cases, you won't need this method, instead use
+			   `RecordReader` as iterator.
+			)")
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;
@@ -222,7 +263,17 @@ PYBIND11_MODULE(_dareblopy, m)
 			{
 				auto meta = self.GetMetadata();
 				return std::make_tuple(meta.file_size, meta.data_size, meta.entries);
-			});
+			}, R"(
+			    Returns metadata of the tfrecord and checks all crc32 checksums.
+
+			    Note:
+			        It has to scan the whole file to
+
+			    Returns:
+			        Tuple[int, int, int] - file_size, data_size, entries. Where `file_size` - size of the file,
+			        `data_size` - size of the data stored in the tfrecord, `entries` - number of entries.
+
+			)");
 
 	py::class_<Records::RecordParser::FixedLenFeature>(m, "FixedLenFeature")
 			.def(py::init())

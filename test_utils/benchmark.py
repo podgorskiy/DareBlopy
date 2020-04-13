@@ -1,14 +1,15 @@
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+import gc
 
 
 class Benchmark:
     def __init__(self):
         self.schedule = []
 
-    def add(self, name, baseline, dareblopy, dareblopy_turbo=None, prehit=()):
-        self.schedule.append((name, baseline, dareblopy, dareblopy_turbo, prehit))
+    def add(self, name, baseline, dareblopy, dareblopy_turbo=None, preheat=()):
+        self.schedule.append((name, baseline, dareblopy, dareblopy_turbo, preheat))
 
     def run(self, title, label_baseline, output_file, loc, figsize=(12, 6), caption=None):
         locmap = {'ul': 2, 'ur': 1, 'll': 3, 'lr': 4}
@@ -16,23 +17,29 @@ class Benchmark:
             loc = locmap[loc]
 
         results = []
-        for name, baseline, dareblopy, dareblopy_turbo, prehit in self.schedule:
+        for name, baseline, dareblopy, dareblopy_turbo, preheat in self.schedule:
             print('\n' + '#' * 80)
             print('Benchmarking: %s' % name)
             print('#' * 80)
-            if prehit:
-                prehit()
+            if preheat:
+                preheat()
             print('With native python:')
             baseline = timeit(baseline)
+            gc.collect()
+            time.sleep(0.1)
             average_time_for_baseline = baseline()
 
             print('With DareBlopy: ')
             dareblopy = timeit(dareblopy)
+            gc.collect()
+            time.sleep(0.1)
             average_time_for_dareblopy = dareblopy()
             average_time_for_dareblopy_turbo = average_time_for_dareblopy
             if dareblopy_turbo:
                 print('With DareBlopy (turbo): ')
                 dareblopy_turbo = timeit(dareblopy_turbo)
+                gc.collect()
+                time.sleep(0.1)
                 average_time_for_dareblopy_turbo = dareblopy_turbo()
 
             results.append((name,
@@ -74,7 +81,9 @@ def timeit(method):
     def timed(*args, **kw):
         ds = 0.0
         trials = 10
+        # preheat
         method(*args, **kw)
+
         for i in range(trials):
             ts = time.time()
             method(*args, **kw)

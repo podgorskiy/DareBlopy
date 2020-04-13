@@ -57,8 +57,8 @@ def run_reading_to_bytes_benchmark():
     bm.add('reading files to `bytes` from a zip archive',
            baseline=read_jpg_bytes_from_zip_native,
            dareblopy=read_jpg_bytes_from_zip_db,
-           prehit=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
-                           zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
+           preheat=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
+                            zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
     # Run everything and save plot
     bm.run(title='Running time of reading files to `bytes`\nfor DareBlopy and equivalent python code',
            label_baseline='Python Standard Library + zipfile',
@@ -117,8 +117,8 @@ def run_reading_jpeg_to_numpy_benchmark():
            baseline=read_jpg_to_numpy_from_zip_native,
            dareblopy=read_jpg_to_numpy_from_zip_db,
            dareblopy_turbo=read_jpg_to_numpy_from_zip_db_turbo,
-           prehit=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
-                           zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
+           preheat=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
+                            zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
 
     # Run everything and save plot
     bm.run(title='Running time of reading jpeg files to numpy `ndarray`\nfor DareBlopy and equivalent python code',
@@ -179,14 +179,14 @@ def run_reading_jpeg_to_numpy_benchmark_nat_storage():
            baseline=read_jpg_to_numpy_from_zip_native,
            dareblopy=read_jpg_to_numpy_from_zip_db,
            dareblopy_turbo=read_jpg_to_numpy_from_zip_db_turbo,
-           prehit=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
-                           zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
+           preheat=lambda: (db.open_zip_archive("test_utils/test_image_archive.zip"),
+                            zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
 
     # Run everything and save plot
     bm.run(title='Running time of reading jpeg files to numpy `ndarray`\nfor DareBlopy and equivalent python code.\n'
                  ' Reading from NAT storage',
            label_baseline='Python Standard Library + zipfile\n + PIL + numpy',
-           output_file='test_utils/benchmark_reading_jpeg.png', loc='ur', figsize=(8, 6),
+           output_file='test_utils/benchmark_reading_jpeg_nat.png', loc='ur', figsize=(8, 6),
            caption="Reading 200 jpeg files, each file is ~30kb and  has 256x256 resolution. "
                    "Files are read to numpy `ndarray` (jpeg's are decoded). "
                    "Reading is performed from filesystem and from a zip archive with no compression (storage type). "
@@ -301,35 +301,35 @@ def run_reading_tfrecords_ablation_benchmark():
 
 def run_reading_tfrecords_comparison_to_tensorflow_benchmark():
     ##################################################################
-    # Benchmarking different record reading strategies
+    # Benchmarking reading tfrecords
     ##################################################################
     import tensorflow as tf
+    time.sleep(1.0)
 
     filenames = ['test_utils/test-large-r00.tfrecords',
                  'test_utils/test-large-r01.tfrecords',
                  'test_utils/test-large-r02.tfrecords',
-                 'test_utils/test-large-r03.tfrecords',
-                 'test_utils/test-large-r00.tfrecords',
-                 'test_utils/test-large-r01.tfrecords',
-                 'test_utils/test-large-r02.tfrecords',
                  'test_utils/test-large-r03.tfrecords']
 
-    results = []
+    if not all(os.path.exists(x) for x in filenames):
+        raise RuntimeError('TFRecords were not found. Please run make_tfrecords.py')
 
-    @benchmark.timeit
-    def reading_tf_records_from_dareblopy():
+    bm = benchmark.Benchmark()
 
+    batch_size = 32
+
+    ##################################################################
+    # Reading a file to bytes object
+    ##################################################################
+    def reading_tf_records_from_dareblopy_withoutdecoding():
         features = {
-            'data': db.FixedLenFeature([3, 256, 256], db.uint8)
+            'data': db.FixedLenFeature([], db.string)
         }
-        iterator = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, 32, 64), worker_count=6)
+        iterator = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, batch_size, 128), worker_count=6)
         records = []
         for batch in iterator:
             records += batch
 
-    results.append((reading_tf_records_from_dareblopy(), "Reading rfrecords with\nDareBlopy"))
-
-    @benchmark.timeit
     def reading_tf_records_from_tensorflow_withoutdecoding():
         raw_dataset = tf.data.TFRecordDataset(filenames)
 
@@ -338,13 +338,26 @@ def run_reading_tfrecords_comparison_to_tensorflow_benchmark():
         }
 
         records = []
-        for batch in raw_dataset.batch(32, drop_remainder=True):
+        for batch in raw_dataset.batch(batch_size, drop_remainder=True):
             s = tf.io.parse_example(batch, feature_description)['data']
             records.append(s)
 
-    results.append((reading_tf_records_from_tensorflow_withoutdecoding(), "Reading rfrecords with\nTensorflow\nwithout decoding"))
+    bm.add('reading tfrecords\nwithout decoding tf.string to numpy',
+           baseline=reading_tf_records_from_tensorflow_withoutdecoding,
+           dareblopy=reading_tf_records_from_dareblopy_withoutdecoding)
 
-    @benchmark.timeit
+    ##################################################################
+    # Reading files to bytes object from zip archive
+    ##################################################################
+    def reading_tf_records_from_dareblopy():
+        features = {
+            'data': db.FixedLenFeature([3, 256, 256], db.uint8)
+        }
+        iterator = db.data_loader(db.ParsedTFRecordsDatasetIterator(filenames, features, batch_size, 64), worker_count=6)
+        records = []
+        for batch in iterator:
+            records += batch
+
     def reading_tf_records_from_tensorflow():
         raw_dataset = tf.data.TFRecordDataset(filenames)
 
@@ -353,25 +366,30 @@ def run_reading_tfrecords_comparison_to_tensorflow_benchmark():
         }
 
         records = []
-        for batch in raw_dataset.batch(32, drop_remainder=True):
+        for batch in raw_dataset.batch(batch_size, drop_remainder=True):
             s = tf.io.parse_example(batch, feature_description)['data']
             data = tf.reshape(tf.io.decode_raw(s, tf.uint8), [-1, 3, 256, 256])
             records.append(data)
 
-    results.append((reading_tf_records_from_tensorflow(), "Reading rfrecords with\nTensorflow"))
+    bm.add('reading tfrecords\nwith decoding tf.string to numpy',
+           baseline=reading_tf_records_from_tensorflow,
+           dareblopy=reading_tf_records_from_dareblopy)
+    # Run everything and save plot
+    bm.run(title='Running time of reading tfrecords\nfor DareBlopy and TensorFlow',
+           label_baseline='TensorFlow',
+           output_file='test_utils/benchmark_reading_tfrecords_comparion_to_tf.png', loc='lr', figsize=(8, 6),
+           caption="Reading 200 raw uint8 images from four tfrecords, each of which is 59MB. Formatting of tfrecords is"
+                   " similar to one used for training StyleGAN by NVidia. "
+                   "Reading is done two times, without decoding and with decoding tf.string to uint8 ndarray."
+                   "Time is averaged over 10 trials.")
 
-    benchmark.do_simple_plot(results,
-                             figsize=(16, 6),
-                             title='Reading tfrecords',
-                             output_file='test_utils/benchmark_reading_tfrecords_comparion_to_tf.png')
 
-
-# run_reading_to_bytes_benchmark()
-# time.sleep(1.0)
+run_reading_to_bytes_benchmark()
+time.sleep(1.0)
 run_reading_jpeg_to_numpy_benchmark()
-# time.sleep(1.0)
+time.sleep(1.0)
 # run_reading_jpeg_to_numpy_benchmark_nat_storage()
 # time.sleep(1.0)
-# run_reading_tfrecords_ablation_benchmark()
-# time.sleep(1.0)
-# run_reading_tfrecords_comparison_to_tensorflow_benchmark()
+run_reading_tfrecords_ablation_benchmark()
+time.sleep(1.0)
+run_reading_tfrecords_comparison_to_tensorflow_benchmark()

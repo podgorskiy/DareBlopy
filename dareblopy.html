@@ -34,7 +34,8 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="dareblopy" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -78,18 +79,18 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">dareblopy package</a><ul>
-<li><a class="reference internal" href="#module-dareblopy">Module contents</a></li>
-<li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-dareblopy.TFRecordsDatasetIterator">dareblopy.TFRecordsDatasetIterator module</a></li>
-<li><a class="reference internal" href="#module-dareblopy.data_loader">dareblopy.data_loader module</a></li>
-<li><a class="reference internal" href="#module-dareblopy.utils">dareblopy.utils module</a></li>
+              <p class="caption"><span class="caption-text">API reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">dareblopy package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-dareblopy">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dareblopy.TFRecordsDatasetIterator">dareblopy.TFRecordsDatasetIterator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dareblopy.data_loader">dareblopy.data_loader module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dareblopy.utils">dareblopy.utils module</a></li>
 </ul>
 </li>
 </ul>
-</div>
+
             
           
         </div>
@@ -161,6 +162,12 @@
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">Archive</code><a class="headerlink" href="#dareblopy.Archive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <dl class="method">
+<dt id="dareblopy.Archive.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dareblopy.Archive.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="dareblopy.Archive.exists">
 <code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.Archive</em>, <em class="sig-param">arg0: str</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#dareblopy.Archive.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exists</p>
@@ -199,11 +206,39 @@
 <dt id="dareblopy.DataType">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">DataType</code><a class="headerlink" href="#dareblopy.DataType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<blockquote>
+<div><p>Enumeration for <a class="reference internal" href="#dareblopy.FixedLenFeature" title="dareblopy.FixedLenFeature"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedLenFeature</span></code></a> dtype.</p>
+<p>Equivalent to <cite>tf.string</cite>, <cite>tf.float32</cite>, <cite>tf.int64</cite>
+Note:</p>
+<blockquote>
+<div><p>uint8 - is an alias for string, that enables reading directly to a preallocated numpy ndarray of a uint8 dtype
+and a given shape. This eliminates any additional copying/casting.</p>
+<blockquote>
+<div><p>To use it, shape of the encoded numpy array most be known</p>
+</div></blockquote>
+</div></blockquote>
+<p>Example:</p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">features</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">FixedLenFeature</span><span class="p">([</span><span class="mi">3</span><span class="p">],</span> <span class="n">db</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">FixedLenFeature</span><span class="p">([],</span> <span class="n">db</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div></blockquote>
 <p>Members:</p>
-<p>string</p>
+<blockquote>
+<div><p>string</p>
 <p>float32</p>
 <p>int64</p>
 <p>uint8</p>
+</div></blockquote>
+<dl class="method">
+<dt id="dareblopy.DataType.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.DataType</em>, <em class="sig-param">arg0: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.DataType.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="dareblopy.DataType.float32">
 <code class="sig-name descname">float32</code><em class="property"> = DataType.float32</em><a class="headerlink" href="#dareblopy.DataType.float32" title="Permalink to this definition">¶</a></dt>
@@ -242,6 +277,11 @@
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">File</code><a class="headerlink" href="#dareblopy.File" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <dl class="method">
+<dt id="dareblopy.File.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.File</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.File.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="dareblopy.File.get_last_write_time">
 <code class="sig-name descname">get_last_write_time</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.File</em><span class="sig-paren">)</span> &#x2192; int<a class="headerlink" href="#dareblopy.File.get_last_write_time" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -277,6 +317,11 @@
 <dt id="dareblopy.FileSystem">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">FileSystem</code><a class="headerlink" href="#dareblopy.FileSystem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="method">
+<dt id="dareblopy.FileSystem.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.FileSystem</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.FileSystem.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="dareblopy.FileSystem.clear_search_paths">
 <code class="sig-name descname">clear_search_paths</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.FileSystem</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.FileSystem.clear_search_paths" title="Permalink to this definition">¶</a></dt>
@@ -338,6 +383,17 @@
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">FixedLenFeature</code><a class="headerlink" href="#dareblopy.FixedLenFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <dl class="method">
+<dt id="dareblopy.FixedLenFeature.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dareblopy.FixedLenFeature.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>__init__(self: _dareblopy.FixedLenFeature) -&gt; None</p></li>
+<li><p>__init__(self: _dareblopy.FixedLenFeature, arg0: List[int], arg1: _dareblopy.DataType) -&gt; None</p></li>
+<li><p>__init__(self: _dareblopy.FixedLenFeature, arg0: List[int], arg1: _dareblopy.DataType, arg2: object) -&gt; None</p></li>
+</ol>
+</dd></dl>
+
+<dl class="method">
 <dt id="dareblopy.FixedLenFeature.default_value">
 <em class="property">property </em><code class="sig-name descname">default_value</code><a class="headerlink" href="#dareblopy.FixedLenFeature.default_value" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -358,6 +414,16 @@
 <dt id="dareblopy.Location">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">Location</code><a class="headerlink" href="#dareblopy.Location" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="method">
+<dt id="dareblopy.Location.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dareblopy.Location.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>__init__(self: _dareblopy.Location, arg0: str) -&gt; None</p></li>
+<li><p>__init__(self: _dareblopy.Location, arg0: str, arg1: fsal::Location::Options, arg2: fsal::PathType, arg3: fsal::LinkType) -&gt; None</p></li>
+</ol>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -371,6 +437,11 @@
 <p>read_update</p>
 <p>write_update</p>
 <p>append_update</p>
+<dl class="method">
+<dt id="dareblopy.Mode.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.Mode</em>, <em class="sig-param">arg0: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.Mode.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="dareblopy.Mode.append">
 <code class="sig-name descname">append</code><em class="property"> = Mode.append</em><a class="headerlink" href="#dareblopy.Mode.append" title="Permalink to this definition">¶</a></dt>
@@ -419,6 +490,21 @@
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">ParsedRecordYielderRandomized</code><a class="headerlink" href="#dareblopy.ParsedRecordYielderRandomized" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <dl class="method">
+<dt id="dareblopy.ParsedRecordYielderRandomized.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.ParsedRecordYielderRandomized, parser: object, filenames: List[str], buffer_size: int, seed: int, epoch: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.ParsedRecordYielderRandomized.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.ParsedRecordYielderRandomized.__iter__">
+<code class="sig-name descname">__iter__</code><span class="sig-paren">(</span><em class="sig-param">self: object</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.ParsedRecordYielderRandomized.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.ParsedRecordYielderRandomized.__next__">
+<code class="sig-name descname">__next__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.ParsedRecordYielderRandomized</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.ParsedRecordYielderRandomized.__next__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="dareblopy.ParsedRecordYielderRandomized.next_n">
 <code class="sig-name descname">next_n</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.ParsedRecordYielderRandomized</em>, <em class="sig-param">arg0: int</em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#dareblopy.ParsedRecordYielderRandomized.next_n" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -426,15 +512,20 @@
 </dd></dl>
 
 <dl class="class">
-<dt id="dareblopy.ParsedTFRecordsDatasetIterator">
-<em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">ParsedTFRecordsDatasetIterator</code><span class="sig-paren">(</span><em class="sig-param">filenames</em>, <em class="sig-param">features</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">buffer_size=1000</em>, <em class="sig-param">seed=None</em>, <em class="sig-param">epoch=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#ParsedTFRecordsDatasetIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.ParsedTFRecordsDatasetIterator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="class">
 <dt id="dareblopy.RecordParser">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">RecordParser</code><a class="headerlink" href="#dareblopy.RecordParser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="method">
+<dt id="dareblopy.RecordParser.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dareblopy.RecordParser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>__init__(self: _dareblopy.RecordParser, arg0: dict) -&gt; None</p></li>
+<li><p>__init__(self: _dareblopy.RecordParser, arg0: dict, arg1: bool) -&gt; None</p></li>
+<li><p>__init__(self: _dareblopy.RecordParser, arg0: dict, arg1: bool, arg2: int) -&gt; None</p></li>
+</ol>
+</dd></dl>
+
 <dl class="method">
 <dt id="dareblopy.RecordParser.parse_example">
 <code class="sig-name descname">parse_example</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordParser, arg0: List[str]</em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#dareblopy.RecordParser.parse_example" title="Permalink to this definition">¶</a></dt>
@@ -456,6 +547,51 @@
 <dt id="dareblopy.RecordReader">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">RecordReader</code><a class="headerlink" href="#dareblopy.RecordReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>An iterator that reads tfrecord file and returns raw records (protobuffer messages).
+Does not support compressed tfrecords. Performs crc32 check of read data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> (<a class="reference internal" href="#dareblopy.File" title="dareblopy.File"><em>File</em></a>) – a <span class="xref std std-ref">.File</span> fileobject.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – a filename of the file.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Contructor is overloaded and excepts either <cite>file</cite> (<span class="xref std std-ref">.File</span>) either <cite>filename</cite> (str)</p>
+</div>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordReader</span><span class="p">(</span><span class="s1">&#39;test_utils/test-small-r00.tfrecords&#39;</span><span class="p">)</span>
+<span class="n">file_size</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">rr</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">()</span>
+<span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rr</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="dareblopy.RecordReader.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dareblopy.RecordReader.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overloaded function.</p>
+<ol class="arabic simple">
+<li><p>__init__(self: _dareblopy.RecordReader, file: fsal::File) -&gt; None</p></li>
+<li><p>__init__(self: _dareblopy.RecordReader, filename: str) -&gt; None</p></li>
+</ol>
+</dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.RecordReader.__iter__">
+<code class="sig-name descname">__iter__</code><span class="sig-paren">(</span><em class="sig-param">self: object</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.RecordReader.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.RecordReader.__next__">
+<code class="sig-name descname">__next__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordReader</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.RecordReader.__next__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.RecordReader.get_metadata">
+<code class="sig-name descname">get_metadata</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordReader</em><span class="sig-paren">)</span> &#x2192; Tuple[int, int, int]<a class="headerlink" href="#dareblopy.RecordReader.get_metadata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="dareblopy.RecordReader.read_record">
 <code class="sig-name descname">read_record</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordReader</em>, <em class="sig-param">arg0: int</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.RecordReader.read_record" title="Permalink to this definition">¶</a></dt>
@@ -468,6 +604,21 @@
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">RecordYielderBasic</code><a class="headerlink" href="#dareblopy.RecordYielderBasic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <dl class="method">
+<dt id="dareblopy.RecordYielderBasic.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordYielderBasic, filenames: List[str]</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.RecordYielderBasic.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.RecordYielderBasic.__iter__">
+<code class="sig-name descname">__iter__</code><span class="sig-paren">(</span><em class="sig-param">self: object</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.RecordYielderBasic.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.RecordYielderBasic.__next__">
+<code class="sig-name descname">__next__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordYielderBasic</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.RecordYielderBasic.__next__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="dareblopy.RecordYielderBasic.next_n">
 <code class="sig-name descname">next_n</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordYielderBasic</em>, <em class="sig-param">arg0: int</em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#dareblopy.RecordYielderBasic.next_n" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -478,6 +629,21 @@
 <dt id="dareblopy.RecordYielderRandomized">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">RecordYielderRandomized</code><a class="headerlink" href="#dareblopy.RecordYielderRandomized" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<dl class="method">
+<dt id="dareblopy.RecordYielderRandomized.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordYielderRandomized, filenames: List[str], buffer_size: int, seed: int, epoch: int</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.RecordYielderRandomized.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.RecordYielderRandomized.__iter__">
+<code class="sig-name descname">__iter__</code><span class="sig-paren">(</span><em class="sig-param">self: object</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.RecordYielderRandomized.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.RecordYielderRandomized.__next__">
+<code class="sig-name descname">__next__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordYielderRandomized</em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.RecordYielderRandomized.__next__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="dareblopy.RecordYielderRandomized.next_n">
 <code class="sig-name descname">next_n</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.RecordYielderRandomized</em>, <em class="sig-param">arg0: int</em><span class="sig-paren">)</span> &#x2192; list<a class="headerlink" href="#dareblopy.RecordYielderRandomized.next_n" title="Permalink to this definition">¶</a></dt>
@@ -490,22 +656,16 @@
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">Status</code><a class="headerlink" href="#dareblopy.Status" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
 <dl class="method">
+<dt id="dareblopy.Status.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.Status</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.Status.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="dareblopy.Status.is_eof">
 <code class="sig-name descname">is_eof</code><span class="sig-paren">(</span><em class="sig-param">self: _dareblopy.Status</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#dareblopy.Status.is_eof" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
-
-<dl class="class">
-<dt id="dareblopy.TFRecordsDatasetIterator">
-<em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">TFRecordsDatasetIterator</code><span class="sig-paren">(</span><em class="sig-param">filenames</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">buffer_size=1000</em>, <em class="sig-param">seed=None</em>, <em class="sig-param">epoch=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#TFRecordsDatasetIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd></dl>
-
-<dl class="function">
-<dt id="dareblopy.data_loader">
-<code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">data_loader</code><span class="sig-paren">(</span><em class="sig-param">yielder</em>, <em class="sig-param">collator=None</em>, <em class="sig-param">iteration_count=None</em>, <em class="sig-param">worker_count=1</em>, <em class="sig-param">queue_size=16</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/data_loader.html#data_loader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.data_loader" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="function">
 <dt id="dareblopy.open_as_bytes">
@@ -542,12 +702,44 @@
 <dt id="dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.TFRecordsDatasetIterator.</code><code class="sig-name descname">ParsedTFRecordsDatasetIterator</code><span class="sig-paren">(</span><em class="sig-param">filenames</em>, <em class="sig-param">features</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">buffer_size=1000</em>, <em class="sig-param">seed=None</em>, <em class="sig-param">epoch=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#ParsedTFRecordsDatasetIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">filenames</em>, <em class="sig-param">features</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">buffer_size=1000</em>, <em class="sig-param">seed=None</em>, <em class="sig-param">epoch=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#ParsedTFRecordsDatasetIterator.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__iter__">
+<code class="sig-name descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#ParsedTFRecordsDatasetIterator.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__next__">
+<code class="sig-name descname">__next__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#ParsedTFRecordsDatasetIterator.__next__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__next__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.TFRecordsDatasetIterator.</code><code class="sig-name descname">TFRecordsDatasetIterator</code><span class="sig-paren">(</span><em class="sig-param">filenames</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">buffer_size=1000</em>, <em class="sig-param">seed=None</em>, <em class="sig-param">epoch=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#TFRecordsDatasetIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">filenames</em>, <em class="sig-param">batch_size</em>, <em class="sig-param">buffer_size=1000</em>, <em class="sig-param">seed=None</em>, <em class="sig-param">epoch=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#TFRecordsDatasetIterator.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__iter__">
+<code class="sig-name descname">__iter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#TFRecordsDatasetIterator.__iter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__next__">
+<code class="sig-name descname">__next__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dareblopy/TFRecordsDatasetIterator.html#TFRecordsDatasetIterator.__next__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__next__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -579,6 +771,13 @@
            
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="dareblopy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

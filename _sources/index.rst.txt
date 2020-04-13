@@ -5,13 +5,16 @@ dareblopy
 =================================================
 
 .. toctree::
-   :caption: First steps
+   :caption: API reference
    :maxdepth: 5
    :hidden:
 
-   _dareblopy
+   dareblopy
 
 Welcome to dareblopy |version|  documentation!
+
+API: :doc:`dareblopy`
+=====================
 
 
 Indices and tables

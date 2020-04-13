@@ -78,8 +78,11 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dareblopy.html">dareblopy package</a></li>
+</ul>
+
             
           
         </div>
@@ -164,7 +167,7 @@
 <span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span><span class="p">,</span> <span class="n">Lock</span><span class="p">,</span> <span class="n">Event</span>
 
 
-<div class="viewcode-block" id="data_loader"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.data_loader">[docs]</a><span class="k">def</span> <span class="nf">data_loader</span><span class="p">(</span><span class="n">yielder</span><span class="p">,</span> <span class="n">collator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iteration_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">queue_size</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+<div class="viewcode-block" id="data_loader"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.data_loader.data_loader">[docs]</a><span class="k">def</span> <span class="nf">data_loader</span><span class="p">(</span><span class="n">yielder</span><span class="p">,</span> <span class="n">collator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iteration_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">queue_size</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
     <span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>

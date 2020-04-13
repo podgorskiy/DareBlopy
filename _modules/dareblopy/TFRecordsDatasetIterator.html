@@ -78,8 +78,11 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption"><span class="caption-text">API reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../dareblopy.html">dareblopy package</a></li>
+</ul>
+
             
           
         </div>
@@ -162,27 +165,33 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="TFRecordsDatasetIterator"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator">[docs]</a><span class="k">class</span> <span class="nc">TFRecordsDatasetIterator</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="TFRecordsDatasetIterator"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator">[docs]</a><span class="k">class</span> <span class="nc">TFRecordsDatasetIterator</span><span class="p">:</span>
+<div class="viewcode-block" id="TFRecordsDatasetIterator.__init__"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">record_yielder</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordYielderRandomized</span><span class="p">(</span><span class="n">filenames</span><span class="p">,</span> <span class="n">buffer_size</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span></div>
 
-    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_yielder</span><span class="o">.</span><span class="n">next_n</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span></div>
+<div class="viewcode-block" id="TFRecordsDatasetIterator.__iter__"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="TFRecordsDatasetIterator.__next__"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.TFRecordsDatasetIterator.__next__">[docs]</a>    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_yielder</span><span class="o">.</span><span class="n">next_n</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="ParsedTFRecordsDatasetIterator"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.ParsedTFRecordsDatasetIterator">[docs]</a><span class="k">class</span> <span class="nc">ParsedTFRecordsDatasetIterator</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="ParsedTFRecordsDatasetIterator"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator">[docs]</a><span class="k">class</span> <span class="nc">ParsedTFRecordsDatasetIterator</span><span class="p">:</span>
+<div class="viewcode-block" id="ParsedTFRecordsDatasetIterator.__init__"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">epoch</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordParser</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordParser</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">record_yielder</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">ParsedRecordYielderRandomized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">,</span> <span class="n">filenames</span><span class="p">,</span> <span class="n">buffer_size</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">epoch</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span></div>
 
-    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_yielder</span><span class="o">.</span><span class="n">next_n</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ParsedTFRecordsDatasetIterator.__iter__"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__iter__">[docs]</a>    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="ParsedTFRecordsDatasetIterator.__next__"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.TFRecordsDatasetIterator.ParsedTFRecordsDatasetIterator.__next__">[docs]</a>    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">record_yielder</span><span class="o">.</span><span class="n">next_n</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

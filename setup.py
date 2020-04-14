@@ -325,7 +325,7 @@ setup(
     url='https://github.com/podgorskiy/dareblopy',
 
     author='Stanislav Pidhorskyi',
-    author_email='stpidhorskyi@mix.wvu.edu; stanislav@podgorskiy.com',
+    author_email='stpidhorskyi@mix.wvu.edu',
 
     license='Apache 2.0 License',
 

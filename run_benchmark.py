@@ -183,7 +183,7 @@ def run_reading_jpeg_to_numpy_benchmark_nat_storage():
                             zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')))
 
     # Run everything and save plot
-    bm.run(title='Running time of reading jpeg files to numpy `ndarray`\nfor DareBlopy and equivalent python code.\n'
+    bm.run(title='Running time of reading jpeg files to numpy `ndarray`for DareBlopy\n and equivalent python code. '
                  ' Reading from NAT storage',
            label_baseline='Python Standard Library + zipfile\n + PIL + numpy',
            output_file='test_utils/benchmark_reading_jpeg_nat.png', loc='ur', figsize=(8, 6),

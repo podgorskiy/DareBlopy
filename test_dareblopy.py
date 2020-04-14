@@ -10,14 +10,14 @@ import dareblopy as db
 class BasicFileOps(unittest.TestCase):
     def test_file_exist(self):
         fs = db.FileSystem()
-        self.assertTrue(fs.exists('README.rst'))
+        self.assertTrue(fs.exists('README.md'))
 
     def test_rename(self):
         fs = db.FileSystem()
-        self.assertFalse(fs.exists('README2.rst'))
-        fs.rename('README.rst', 'README2.rst')
-        self.assertTrue(fs.exists('README2.rst'))
-        fs.rename('README2.rst', 'README.rst')
+        self.assertFalse(fs.exists('README2.md'))
+        fs.rename('README.md', 'README2.md')
+        self.assertTrue(fs.exists('README2.md'))
+        fs.rename('README2.md', 'README.md')
 
     def test_seek_tell(self):
         fs = db.FileSystem()

@@ -10,8 +10,9 @@
 
   <p align="center">
     <a href="https://badge.fury.io/py/dareblopy"><img src="https://badge.fury.io/py/dareblopy.svg" alt="PyPI version" height="18"></a>
-    <img src="https://img.shields.io/pypi/pyversions/dareblopy">
-    <img src="https://travis-ci.org/podgorskiy/DareBlopy.svg?branch=master">
+    <a href="https://pepy.tech/project/dareblopy"><img src="https://pepy.tech/badge/dareblopy"></a>
+    <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg"></a>
+    <a href="https://api.travis-ci.com/podgorskiy/bimpy.svg?branch=master"><img src="https://travis-ci.org/podgorskiy/DareBlopy.svg?branch=master"></a>
   </p>
 
 

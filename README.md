@@ -108,9 +108,65 @@ This decoding to numpy array comes at zero cost, which is demonstrated below:
 
 ## Tutorial
 
+Import DareBlopy
+
+
+```python
+import dareblopy as db
+from IPython.display import Image, display
+import PIL.Image
+```
+
+Open zip archive:
+
+
+```python
+archive = db.open_zip_archive("test_utils/test_image_archive.zip")
+```
+
+Read image to bytes and display:
+
+
+```python
+b = archive.open_as_bytes('0.jpg')
+Image(b)
+```
 
 
 
+
+![jpeg](https://podgorskiy.com/static/output_5_0.jpeg)
+
+
+
+Alternatively, read image to numpy:
+
+
+```python
+img = archive.read_jpg_as_numpy('0.jpg')
+img.shape
+```
+
+
+
+
+    (256, 256, 3)
+
+
+
+
+```python
+display(PIL.Image.fromarray(img))
+```
+
+
+![png](https://podgorskiy.com/static/output_8_0.png)
+
+
+For more advanced usage please refer to:
+ * Tests: https://github.com/podgorskiy/DareBlopy/blob/master/test_dareblopy.py
+ * Benchmark: https://github.com/podgorskiy/DareBlopy/blob/master/run_benchmark.py
+ * API reference page: https://podgorskiy.github.io/DareBlopy/dareblopy.html
 
 ## License
 

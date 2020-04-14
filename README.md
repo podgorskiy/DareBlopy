@@ -6,6 +6,14 @@
 <h4 align="center">Framework agnostic, faster data reading for DeepLearning.</h4>
 <h4 align="center">A native extension for Python built with C++ and <a href="https://github.com/pybind/pybind11" target="_blank">pybind11</a>.</h4>
 
+  <p align="center">
+    <a href="#installation">Installation</a> •
+    <a href="#why">Why?</a> •
+    <a href="#what-is-the-performance-gain">What is the performance gain?</a> •
+    <a href="#tutorial">Tutorial</a> •
+    <a href="#license">License</a>
+  </p>
+  
 <p align="center">
   <a href="https://badge.fury.io/py/dareblopy"><img src="https://badge.fury.io/py/dareblopy.svg" alt="PyPI version" height="18"></a>
   <a href="https://pepy.tech/project/dareblopy"><img src="https://pepy.tech/badge/dareblopy"></a>

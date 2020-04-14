@@ -30,7 +30,7 @@ If, all the small files are agglomerated into larger file (or several large file
 
 The downside of **TFRecords** is that it's **TensorFlow** only.
 
-A much simpler, yet still effective solution is to store data in **ZIP** archive with zero compression. However, using **zipfile** package from standard library can be slow, since it is implemented purely in **Python** and in certain causes unnecessary data copying. 
+A much simpler, yet still effective solution is to store data in **ZIP** archive with zero compression. However, using **zipfile** package from standard library can be slow, since it is implemented purely in **Python** and in certain cases can cause unnecessary data copying. 
 
 That's precisely the reason behind development of **DareBlopy**. In addition to that it also has such features as:
 
@@ -43,29 +43,36 @@ That's precisely the reason behind development of **DareBlopy**. In addition to 
 * Virtual filesystem. Allows *mounting* of zip archives.
 
 ## What is the performance gain?
-
-Well, it depends a lot on a particular use-case. Let's consider several.
+Well, it depends a lot on a particular use-case. Let's consider several. All details of the benchmarks you can find in [run_benchmark.py](https://github.com/podgorskiy/DareBlopy/blob/master/run_benchmark.py). You can also run it on your machine and compare results to the ones reported here.
 
 #### Reading files to *bytes*
-
 **Python**'s **bytes** object can be a bit nasty. Generally speaking, you can not return from C/C++ land data as a **bytes** object without making a data copy. That's because memory for **bytes** object must be allocated as one chunk for both, the header and data itself. In **DareBlopy** this extra copy is eliminated, you can find details [here](https://github.com/pybind/pybind11/issues/1236).
 
 In this test scenario, we read 200 files, each of which ~30kb. Reading is done from local filesystem and from a **ZIP** archive.
 
+Reading files using **DareBlopy** is faster even when read from filesystem, but when read from **ZIP** it provides substantial improvement.
+ 
 <p align="center">
 <img src="test_utils/benchmark_reading_files.png"  width="600pt">
 </p>
 
-Reading files using **DareBlopy** is faster even when read from filesystem, but when read from **ZIP** it provides substantial improvement.
- 
+#### Reading JPEGs to **numpy**'s *ndarray*
+This is where **DareBlopy**'s feature of direct readying to **numpy** array is demonstrated. When the file is read, it is decompressed directly to a preallocated numpy array, and all of that happens on C++ land while **GIL** is released.
+
+Note: here PIL v.7.0.0 is used, on Ubuntu 18. In my installation, it does not use **libjpeg-turbo**. 
 
 <p align="center">
 <img src="test_utils/benchmark_reading_jpeg.png"  width="600pt">
 </p>
 
+It this case, difference between **ZIP**/filesystem is quite insignificant, but things change dramatically if filesystem is streamed over a network:
+
 <p align="center">
 <img src="test_utils/benchmark_reading_jpeg_nat.png"  width="600pt">
 </p>
+
+
+#### Reading TFRecords
 
 <p align="center">
 <img src="test_utils/benchmark_reading_tfrecords_comparion_to_tf.png"  width="600pt">

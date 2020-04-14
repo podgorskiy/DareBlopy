@@ -345,4 +345,6 @@ setup(
     packages=['dareblopy'],
 
     ext_modules=[extension],
+
+    install_requires=['numpy']
 )

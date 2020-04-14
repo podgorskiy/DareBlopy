@@ -17,6 +17,13 @@
 **Da**ta**Re**ading**Blo**cks for **Py**thon is a python module that provides collection of C++ backed data reading primitives.
 It targets deep-learning needs, but it is framework agnostic.
 
+### Installation
+Available as pypi package:
+```
+$ pip install dareblopy
+```
+
+To build from sources refer to [wiki page](https://github.com/podgorskiy/DareBlopy/wiki/Building-from-sources).
 
 ## Why?
 
@@ -73,10 +80,37 @@ It this case, difference between **ZIP**/filesystem is quite insignificant, but 
 
 
 #### Reading TFRecords
+**DareBlopy** can read **TensorFlow** records. This functionality was developed in the first place for reading FFHQ dataset from TFRecords.
+
+It introduces alias to `string` type: `uint8`, which allows to return directly **numpy** array if the shape is known beforehand.
+
+For example, code like:
+
+```python
+        features = {
+            'data': db.FixedLenFeature([], db.string)
+        }
+```
+
+Can be replaced with:
+
+```python
+        features = {
+            'data': db.FixedLenFeature([3, 32, 32], db.uint8)
+        }
+```
+
+This decoding to numpy array comes at zero cost, which is demonstrated below:
 
 <p align="center">
 <img src="test_utils/benchmark_reading_tfrecords_comparion_to_tf.png"  width="600pt">
 </p>
+
+## Tutorial
+
+
+
+
 
 ## License
 

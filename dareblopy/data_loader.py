@@ -22,6 +22,43 @@ from threading import Thread, Lock, Event
 
 
 def data_loader(yielder, collator=None, iteration_count=None, worker_count=1, queue_size=16):
+    """ Return an iterator that retrieves objects from yielder and passes them through collator.
+
+    Maintains a queue of given size and can run several worker threads. Intended to be used for asynchronous, buffered
+    data loading. Uses threads instead of multiprocessing, so tensors can be uploaded to GPU in collator.
+
+    There are many purposes that function :attr:`collator` can be used for, depending on your use case.
+
+    - Reading data from disk or db
+    - Data decoding, e.g. from JPEG.
+    - Augmenting data, flipping, rotating adding nose, etc.
+    - Concatenation of data, stacking to single ndarray, conversion to a tensor, uploading to GPU.
+    - Data generation.
+
+    Note:
+        Sequential order of batches is guaranteed only if number of workers is 1 (Default), otherwise batches might
+        be supplied out of order.
+
+    Args:
+        yielder (iterator): Input data, returns batches.
+        collator (Callable, optional): Function for processing batches. Receives batch from yielder.
+        Can return object of any type. Defaults to None.
+        worker_count (int, optional): Number of workers, should be greater or equal to one. To process data in parallel
+            and fully load CPU :attr:`worker_count` should be close to the number of CPU cores. Defaults to one.
+        queue_size (int, optional): Maximum size of the queue, which is number of batches to buffer. Should be larger
+            than :attr:`worker_count`. Typically, one would want this to be as large as possible to amortize all disk
+            IO and computational costs. Downside of large value is increased RAM consumption. Defaults to 16.
+
+    Returns:
+        Iterator: An object that produces a sequence of batches. :meth:`next()` method of the iterator will return
+        object that was produced by :attr:`collator` function
+
+
+    Raises:
+        StopIteration: When all data was iterated through. Stops the for loop.
+
+    """
+
     class State:
         def __init__(self):
             self.lock = Lock()

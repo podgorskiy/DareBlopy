@@ -1,5 +1,3 @@
-.. raw:: html
-
   <h1 align="center">
     <br>
     <img src="https://podgorskiy.com/static/dareblopylogo.svg">
@@ -16,7 +14,7 @@
   </p>
 
 
-**Da**\ ta **Re**\ ading **Blo**\ cks for **Py**\ thon is a python module that provides collection of C++ backed data reading primitives.
+**Da**ta**Re**ading**Blo**cks for **Py**thon is a python module that provides collection of C++ backed data reading primitives.
 It targets deep-learning needs, but it is framework agnostic.
 
 Features:
@@ -30,3 +28,23 @@ Features:
 * Mounting several zip archive to virtual file system.
 
 * Implemented fully in C++ for optimal performance.
+
+<p align="center">
+<img src="test_utils/benchmark_reading_files.png"  width="600pt">
+</p>
+
+<p align="center">
+<img src="test_utils/benchmark_reading_jpeg.png"  width="600pt">
+</p>
+
+<p align="center">
+<img src="test_utils/benchmark_reading_jpeg_nat.png"  width="600pt">
+</p>
+
+<p align="center">
+<img src="test_utils/benchmark_reading_tfrecords_comparion_to_tf.png"  width="600pt">
+</p>
+
+## License
+
+[Apache License 2.0](LICENSE)

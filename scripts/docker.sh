@@ -26,7 +26,7 @@ cp -R /io/zlib ./
 cp -R /io/fsal ./
 cp -R /io/sources ./
 cp /io/setup.py ./
-cp /io/README.rst ./
+cp /io/README.md ./
 cp /io/LICENSE ./
 
 for PYBIN in /opt/python/*/bin; do

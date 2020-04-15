@@ -321,6 +321,7 @@ setup(
 
     description='dareblopy',
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     url='https://github.com/podgorskiy/dareblopy',
 
@@ -331,7 +332,7 @@ setup(
 
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: Apache 2.0 License',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',

@@ -44,7 +44,7 @@ RecordReader::RecordReader(const std::string& file): m_offset(0)
 	fsal::FileSystem fs;
 	m_file = fs.Open(file);
 	if (!m_file)
-		throw runtime_error("Can't create RecordReader. Can't find file %", file.c_str());
+		throw runtime_error("Can't create RecordReader. Can't find file: %s", file.c_str());
 	// Does not handle compression yet
 }
 

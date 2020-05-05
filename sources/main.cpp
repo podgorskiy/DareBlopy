@@ -219,7 +219,7 @@ PYBIND11_MODULE(_dareblopy, m)
 	)")
 			.def(py::init<fsal::File>(), py::arg("file"))
 			.def(py::init<const std::string&>(), py::arg("filename"))
-			.def("read_record", [](RecordReader& self, size_t& offset)->py::object
+			.def("read_record", [](RecordReader& self, uint64_t& offset)->py::object
 			{
 				PyBytesObject* bytesObject = nullptr;
 				{

@@ -15,7 +15,7 @@ namespace fsal
 	{
 		enum
 		{
-			buff_size = 16 * 1024,
+			buff_size = 256 * 1024,
 			buff_real_size = buff_size * 8
 		};
 

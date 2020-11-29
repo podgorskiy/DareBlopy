@@ -197,6 +197,20 @@ PYBIND11_MODULE(_dareblopy, m)
 			.value("uint8", Records::DataType::DT_UINT8)
 			.export_values();
 
+	py::enum_<RecordReader::Compression>(m, "Compression", py::arithmetic(), R"(
+	    Enumeration for compression type used for tfrecords.
+
+	    Possible values:
+
+            * `None` - default
+            * `GZIP`
+            * `ZLIB`
+	)")
+			.value("None", RecordReader::None)
+			.value("GZIP", RecordReader::GZIP)
+			.value("ZLIB", RecordReader::ZLIB)
+			.export_values();
+
 	py::class_<RecordReader>(m, "RecordReader", R"(
 	    An iterator that reads tfrecord file and returns raw records (protobuffer messages).
 	    Does not support compressed tfrecords. Performs crc32 check of read data.
@@ -217,8 +231,8 @@ PYBIND11_MODULE(_dareblopy, m)
 	            records = list(rr)
 
 	)")
-			.def(py::init<fsal::File>(), py::arg("file"))
-			.def(py::init<const std::string&>(), py::arg("filename"))
+			.def(py::init<fsal::File, RecordReader::Compression>(), py::arg("file"), py::arg("compression") = RecordReader::None)
+			.def(py::init<const std::string&, RecordReader::Compression>(), py::arg("filename"), py::arg("compression") = RecordReader::None)
 			.def("read_record", [](RecordReader& self, size_t& offset)->py::object
 			{
 				PyBytesObject* bytesObject = nullptr;
@@ -292,7 +306,7 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("parse_example", &Records::RecordParser::ParseExample);
 
 	py::class_<RecordYielderBasic>(m, "RecordYielderBasic")
-			.def(py::init<std::vector<std::string>&>(), py::arg("filenames"))
+			.def(py::init<std::vector<std::string>&, RecordReader::Compression>(), py::arg("filenames"), py::arg("compression") = RecordReader::None)
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;
@@ -301,8 +315,8 @@ PYBIND11_MODULE(_dareblopy, m)
 	        .def("next_n", &RecordYielderBasic::GetNextN, py::return_value_policy::take_ownership);
 
 	py::class_<RecordYielderRandomized>(m, "RecordYielderRandomized")
-			.def(py::init<std::vector<std::string>&, int, uint64_t, int>(),
-			        py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"))
+			.def(py::init<std::vector<std::string>&, int, uint64_t, int, RecordReader::Compression>(),
+			        py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"), py::arg("compression") = RecordReader::None)
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;
@@ -311,8 +325,8 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("next_n", &RecordYielderRandomized::GetNextN, py::return_value_policy::take_ownership);
 
 	py::class_<ParsedRecordYielderRandomized>(m, "ParsedRecordYielderRandomized")
-			.def(py::init<py::object, std::vector<std::string>&, int, uint64_t, int>(),
-			        py::arg("parser"), py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"))
+			.def(py::init<py::object, std::vector<std::string>&, int, uint64_t, int, RecordReader::Compression>(),
+			        py::arg("parser"), py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"), py::arg("compression") = RecordReader::None)
 			.def("__iter__", [](py::object& self)->py::object
 			{
 				return self;

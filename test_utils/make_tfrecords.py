@@ -48,9 +48,11 @@ def prepare_tfrecords():
         tfr_opt = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.NONE)
 
         part_path_large = "test-large-r%02d.tfrecords" % i
+        part_path_small_gzip = "test-small-gzip-r%02d.tfrecords" % i
         part_path_small = "test-small-r%02d.tfrecords" % i
         part_path_images_pickle = "test-small-images-r%02d.pth" % i
         part_path_records_pickle = "test-small-records-r%02d.pth" % i
+        part_path_records_gzip_pickle = "test-small-records-gzip-r%02d.pth" % i
 
         tfr_writer = tf.python_io.TFRecordWriter(part_path_large, tfr_opt)
         for image in images_large * 6:
@@ -72,6 +74,18 @@ def prepare_tfrecords():
             tfr_writer.write(record)
         tfr_writer.close()
 
+        tfr_opt_c = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.GZIP)
+        tfr_writer = tf.python_io.TFRecordWriter(part_path_small_gzip, tfr_opt_c)
+        records_gzip = []
+        for image in images_small:
+            ex = tf.train.Example(features=tf.train.Features(feature={
+                'shape': tf.train.Feature(int64_list=tf.train.Int64List(value=image.shape)),
+                'data': tf.train.Feature(bytes_list=tf.train.BytesList(value=[image.tostring()]))}))
+            record = ex.SerializeToString()
+            records_gzip.append(record)
+            tfr_writer.write(record)
+        tfr_writer.close()
+
         # Dump source images as target for comparison for testing
         with open(part_path_images_pickle, 'wb') as f:
             pickle.dump(images_small, f)
@@ -79,6 +93,10 @@ def prepare_tfrecords():
         # Dump records as target for comparison for testing
         with open(part_path_records_pickle, 'wb') as f:
             pickle.dump(records, f)
+
+        # Dump records as target for comparison for testing
+        with open(part_path_records_gzip_pickle, 'wb') as f:
+            pickle.dump(records_gzip, f)
 
 
 if __name__ == '__main__':

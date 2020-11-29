@@ -260,6 +260,52 @@ class TFRecordsReading(unittest.TestCase):
                     break
 
 
+class TFRecordsReadingCompressed(unittest.TestCase):
+    def test_reading_record(self):
+        rr = db.RecordReader('test_utils/test-small-gzip-r00.tfrecords', db.Compression.GZIP)
+        self.assertIsNotNone(rr)
+
+        file_size, data_size, entries = rr.get_metadata()
+        self.assertEqual(entries, 50)
+
+        records = list(rr)
+
+        self.assertEqual(len(records), 50)
+
+        # reading ground truth records to confirm reading container was correct
+        with open('test_utils/test-small-records-gzip-r00.pth', 'rb') as f:
+            records_gt = pickle.load(f)
+
+        self.assertEqual(records_gt, records)
+
+    def test_record_yielder(self):
+        record_yielder = db.RecordYielderBasic(['test_utils/test-small-gzip-r00.tfrecords',
+                                                'test_utils/test-small-gzip-r01.tfrecords',
+                                                'test_utils/test-small-gzip-r02.tfrecords',
+                                                'test_utils/test-small-gzip-r03.tfrecords'], db.Compression.GZIP)
+
+        self.assertIsNotNone(record_yielder)
+        records = []
+
+        while True:
+            try:
+                batch = record_yielder.next_n(32)
+                records += batch
+            except StopIteration:
+                break
+
+        # reading ground truth records to confirm reading the container was correct
+        records_gt = []
+        for file in ['test_utils/test-small-records-gzip-r00.pth',
+                     'test_utils/test-small-records-gzip-r01.pth',
+                     'test_utils/test-small-records-gzip-r02.pth',
+                     'test_utils/test-small-records-gzip-r03.pth']:
+            with open(file, 'rb') as f:
+                records_gt += pickle.load(f)
+
+        self.assertEqual(records_gt, records)
+
+
 class TFRecordsParsing(unittest.TestCase):
     def setUp(self):
         # reading records

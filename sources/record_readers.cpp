@@ -17,6 +17,7 @@
 #include <limits.h>
 #include <cassert>
 #include "common.h"
+#include "zlib_file.h"
 
 
 static const uint32_t kMaskDelta = 0xa282ead8ul;
@@ -32,20 +33,29 @@ inline uint32_t Unmask(uint32_t masked_crc)
 	return ((rot >> 17) | (rot << 15));
 }
 
-RecordReader::RecordReader(fsal::File file): m_offset(0), m_file(std::move(file))
+RecordReader::RecordReader(fsal::File file, Compression compression): m_offset(0), m_file(std::move(file))
 {
 	// Does not handle compression yet
 	if (!m_file)
 		throw runtime_error("Can't create RecordReader. Given file is None");
+
+	if (compression == GZIP)
+		m_file = fsal::File(new fsal::ZlibFile(m_file.GetInterface(), MAX_WBITS + 16));
+	else if (compression == ZLIB)
+		m_file = fsal::File(new fsal::ZlibFile(m_file.GetInterface(), MAX_WBITS));
 }
 
-RecordReader::RecordReader(const std::string& file): m_offset(0)
+RecordReader::RecordReader(const std::string& file, Compression compression): m_offset(0)
 {
 	fsal::FileSystem fs;
 	m_file = fs.Open(file);
 	if (!m_file)
 		throw runtime_error("Can't create RecordReader. Can't find file: %s", file.c_str());
-	// Does not handle compression yet
+
+	if (compression == GZIP)
+		m_file = fsal::File(new fsal::ZlibFile(m_file.GetInterface(), MAX_WBITS + 16));
+	else if (compression == ZLIB)
+		m_file = fsal::File(new fsal::ZlibFile(m_file.GetInterface(), MAX_WBITS));
 }
 
 fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* dst)
@@ -143,7 +153,9 @@ RecordReader::Metadata RecordReader::GetMetadata()
 		while (offset < m_metadata.file_size)
 		{
 			RecordHeader header = { 0 };
-			ReadChecksummed(offset, sizeof(RecordHeader::length), (uint8_t*)&header);
+			auto status = ReadChecksummed(offset, sizeof(RecordHeader::length), (uint8_t*)&header);
+			if (status.is_eof())
+				break;
 
 			m_file.Seek(header.length + sizeof(uint32_t), fsal::File::CurrentPosition);
 			offset += sizeof(RecordHeader) + header.length + sizeof(uint32_t);

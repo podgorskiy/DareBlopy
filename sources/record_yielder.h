@@ -31,11 +31,13 @@ public:
 	RecordYielderBasic(const RecordYielderBasic&) = delete; // non construction-copyable
 	RecordYielderBasic& operator=( const RecordYielderBasic&) = delete; // non copyable
 
-	explicit RecordYielderBasic(std::vector<std::string>& filenames)
+	explicit RecordYielderBasic(std::vector<std::string>& filenames, RecordReader::Compression compression)
 	{
 		m_filenames = filenames;
+		m_compression = compression;
 		m_current_file = 0;
 		m_rr = nullptr;
+		m_compression = compression;
 	}
 
 	virtual ~RecordYielderBasic()
@@ -54,7 +56,7 @@ public:
 				throw py::stop_iteration();
 			}
 
-			m_rr = new RecordReader(m_filenames[m_current_file]);
+			m_rr = new RecordReader(m_filenames[m_current_file], m_compression);
 		}
 
 		auto status = m_rr->GetNext(GetBytesAllocator(bytesObject));
@@ -98,7 +100,7 @@ public:
 						}
 					}
 
-					m_rr = new RecordReader(m_filenames[m_current_file]);
+					m_rr = new RecordReader(m_filenames[m_current_file], m_compression);
 				}
 
 				auto status = m_rr->GetNext(GetBytesAllocator(bytesObject));
@@ -126,6 +128,7 @@ public:
 
 private:
 	std::vector<std::string> m_filenames;
+	RecordReader::Compression m_compression;
 	RecordReader* m_rr;
 	int m_current_file;
 };
@@ -137,9 +140,10 @@ public:
 	RecordYielderRandomized(const RecordYielderRandomized&) = delete; // non construction-copyable
 	RecordYielderRandomized& operator=( const RecordYielderRandomized&) = delete; // non copyable
 
-	explicit RecordYielderRandomized(std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch)
+	explicit RecordYielderRandomized(std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch, RecordReader::Compression compression)
 	{
 		m_filenames = filenames;
+		m_compression = compression;
 		m_buffsize = buffsize;
 		uint64_t hash = ((uint64_t)std::hash<size_t>{}(seed)) ^ ((uint64_t)std::hash<int>{}(epoch) << 1);
 		std::mt19937_64 shuffle_rnd(hash);
@@ -166,7 +170,7 @@ public:
 
 			if (m_rr == nullptr)
 			{
-				m_rr = new RecordReader(m_filenames[m_current_file]);
+				m_rr = new RecordReader(m_filenames[m_current_file], m_compression);
 			}
 
 			PyBytesObject* bytesObject = nullptr;
@@ -243,6 +247,7 @@ public:
 private:
 	std::mt19937_64 m_rnd;
 	std::vector<std::string> m_filenames;
+	RecordReader::Compression m_compression;
 	std::vector<py::object> m_buffer;
 	int m_buffsize;
 	RecordReader* m_rr;
@@ -256,11 +261,12 @@ public:
 	ParsedRecordYielderRandomized(const ParsedRecordYielderRandomized&) = delete; // non construction-copyable
 	ParsedRecordYielderRandomized& operator=( const ParsedRecordYielderRandomized&) = delete; // non copyable
 
-	explicit ParsedRecordYielderRandomized(py::object parser, std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch)
+	explicit ParsedRecordYielderRandomized(py::object parser, std::vector<std::string>& filenames, int buffsize, uint64_t seed, int epoch, RecordReader::Compression compression)
 	{
 		m_parser_obj = parser;
 		m_parser = py::cast<Records::RecordParser*>(m_parser_obj);
 		m_filenames = filenames;
+		m_compression = compression;
 		m_buffsize = buffsize;
 		uint64_t hash = ((uint64_t)std::hash<size_t>{}(seed)) ^ ((uint64_t)std::hash<int>{}(epoch) << 1);
 		std::mt19937_64 shuffle_rnd(hash);
@@ -287,7 +293,7 @@ public:
 
 			if (m_rr == nullptr)
 			{
-				m_rr = new RecordReader(m_filenames[m_current_file]);
+				m_rr = new RecordReader(m_filenames[m_current_file], m_compression);
 			}
 
 			std::string str;
@@ -368,6 +374,7 @@ public:
 private:
 	std::mt19937_64 m_rnd;
 	std::vector<std::string> m_filenames;
+	RecordReader::Compression m_compression;
 	std::vector<std::string> m_buffer;
 	int m_buffsize;
 	RecordReader* m_rr;

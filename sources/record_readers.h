@@ -32,6 +32,13 @@ struct RecordHeader
 class RecordReader
 {
 public:
+	enum Compression
+	{
+		None,
+		ZLIB,
+		GZIP
+	};
+
 	RecordReader(const RecordReader&) = delete; // non construction-copyable
 	RecordReader& operator=( const RecordReader&) = delete; // non copyable
 
@@ -42,9 +49,9 @@ public:
 		int64_t entries = -1;
 	};
 
-	explicit RecordReader(fsal::File file);
+	explicit RecordReader(fsal::File file, Compression compression);
 
-	explicit RecordReader(const std::string& file);
+	explicit RecordReader(const std::string& file, Compression compression);
 
 	virtual ~RecordReader() = default;
 

@@ -19,7 +19,11 @@
 #include <memory>
 #include <exception>
 
+#if defined(__GNUC__)
 #define HIDDEN __attribute__ ((visibility("hidden")))
+#else
+#define HIDDEN
+#endif
 
 #define PYBIND11_NUMPY_OBJECT_DTYPE(Type) \
     namespace pybind11 { namespace detail { \

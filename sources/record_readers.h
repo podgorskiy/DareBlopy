@@ -55,9 +55,9 @@ public:
 
 	virtual ~RecordReader() = default;
 
-	fsal::Status ReadRecord(size_t& offset, fsal::MemRefFile* mem_file);
+	fsal::Status ReadRecord(uint64_t& offset, fsal::MemRefFile* mem_file);
 
-	fsal::Status ReadRecord(size_t& offset, std::function<void*(size_t size)> alloc_func);
+	fsal::Status ReadRecord(uint64_t& offset, std::function<void*(size_t size)> alloc_func);
 
 	Metadata GetMetadata();
 
@@ -70,7 +70,7 @@ public:
 	uint64_t offset() const { return m_offset; }
 
 private:
-	fsal::Status ReadChecksummed(size_t offset, size_t size, uint8_t* data);
+	fsal::Status ReadChecksummed(uint64_t offset, size_t size, uint8_t* data);
 	fsal::MemRefFile m_mem_file;
 	uint64_t m_offset;
 	fsal::File m_file;

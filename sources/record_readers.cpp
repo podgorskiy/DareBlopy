@@ -58,7 +58,7 @@ RecordReader::RecordReader(const std::string& file, Compression compression): m_
 		m_file = fsal::File(new fsal::ZlibFile(m_file.GetInterface(), MAX_WBITS));
 }
 
-fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* dst)
+fsal::Status RecordReader::ReadChecksummed(uint64_t offset, size_t size, uint8_t* dst)
 {
 	if (size >= SIZE_MAX - sizeof(uint32_t))
 	{
@@ -90,7 +90,7 @@ fsal::Status RecordReader::ReadChecksummed(size_t offset, size_t size, uint8_t* 
 	return true;
 }
 
-fsal::Status RecordReader::ReadRecord(size_t& offset, fsal::MemRefFile* mem_file)
+fsal::Status RecordReader::ReadRecord(uint64_t& offset, fsal::MemRefFile* mem_file)
 {
 	m_file.Seek(offset);
 
@@ -109,7 +109,7 @@ fsal::Status RecordReader::ReadRecord(size_t& offset, fsal::MemRefFile* mem_file
 	return true;
 }
 
-fsal::Status RecordReader::ReadRecord(size_t& offset, std::function<void*(size_t size)> alloc_func)
+fsal::Status RecordReader::ReadRecord(uint64_t& offset, std::function<void*(size_t size)> alloc_func)
 {
 	m_file.Seek(offset);
 

@@ -219,8 +219,9 @@ jpeg_turbo = """jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jchuff.c
 
 jpeg_turbo = ['libs/libjpeg-turbo/' + x for x in jpeg_turbo.split()]
 
+p64 = sys.maxsize > 2**32
 
-jpeg_turbo_simd = """x86_64/jsimdcpu.asm x86_64/jfdctflt-sse.asm
+jpeg_turbo_simd_64 = """x86_64/jsimdcpu.asm x86_64/jfdctflt-sse.asm
         x86_64/jccolor-sse2.asm x86_64/jcgray-sse2.asm x86_64/jchuff-sse2.asm
         x86_64/jcphuff-sse2.asm x86_64/jcsample-sse2.asm x86_64/jdcolor-sse2.asm
         x86_64/jdmerge-sse2.asm x86_64/jdsample-sse2.asm x86_64/jfdctfst-sse2.asm
@@ -231,8 +232,21 @@ jpeg_turbo_simd = """x86_64/jsimdcpu.asm x86_64/jfdctflt-sse.asm
         x86_64/jdcolor-avx2.asm x86_64/jdmerge-avx2.asm x86_64/jdsample-avx2.asm
         x86_64/jfdctint-avx2.asm x86_64/jidctint-avx2.asm x86_64/jquanti-avx2.asm x86_64/jsimd.c"""
 
-jpeg_turbo_simd = ['libs/libjpeg-turbo/simd/' + x for x in jpeg_turbo_simd.split()]
+jpeg_turbo_simd_86 = """i386/jccolor-avx2.asm  i386/jccolor-mmx.asm  i386/jccolor-sse2.asm  
+        i386/jcgray-avx2.asm  i386/jcgray-mmx.asm  i386/jcgray-sse2.asm  i386/jchuff-sse2.asm  
+        i386/jcphuff-sse2.asm  i386/jcsample-avx2.asm  i386/jcsample-mmx.asm  i386/jcsample-sse2.asm  
+        i386/jdcolor-avx2.asm  i386/jdcolor-mmx.asm  i386/jdcolor-sse2.asm  i386/jdmerge-avx2.asm  
+        i386/jdmerge-mmx.asm  i386/jdmerge-sse2.asm  i386/jdsample-avx2.asm  i386/jdsample-mmx.asm  
+        i386/jdsample-sse2.asm  i386/jfdctflt-3dn.asm  i386/jfdctflt-sse.asm  i386/jfdctfst-mmx.asm  
+        i386/jfdctfst-sse2.asm  i386/jfdctint-avx2.asm  i386/jfdctint-mmx.asm  i386/jfdctint-sse2.asm  
+        i386/jidctflt-3dn.asm  i386/jidctflt-sse.asm  i386/jidctflt-sse2.asm  i386/jidctfst-mmx.asm  
+        i386/jidctfst-sse2.asm  i386/jidctint-avx2.asm  i386/jidctint-mmx.asm  i386/jidctint-sse2.asm  
+        i386/jidctred-mmx.asm  i386/jidctred-sse2.asm  i386/jquant-3dn.asm  i386/jquant-mmx.asm  
+        i386/jquant-sse.asm  i386/jquantf-sse2.asm  i386/jquanti-avx2.asm  i386/jquanti-sse2.asm  
+        i386/jsimd.c  i386/jsimdcpu.asm"""
 
+
+jpeg_turbo_simd = ['libs/libjpeg-turbo/simd/' + x for x in (jpeg_turbo_simd_64 if p64 else jpeg_turbo_simd_86).split()]
 
 jpeg_vanila = """jmemnobs.c jaricom.c jcapimin.c jcapistd.c jcarith.c jccoefct.c jccolor.c
         jcdctmgr.c jchuff.c jcinit.c jcmainct.c jcmarker.c jcmaster.c jcomapi.c jcparam.c
@@ -261,7 +275,7 @@ for file in jpeg_vanila:
 libs = {
     'darwin': [],
     'posix': ["rt", "m", "stdc++fs", "gomp"],
-    'win32': [],
+    'win32': ["ole32", "shell32"],
 }
 
 extra_link = {
@@ -288,7 +302,11 @@ extra_compile_c_args = {
     'win32': [],
 }
 
-extra_compile_asm_args = ['-DELF', '-D__x86_64__', '-DPIC', '-DTURBO', '-f elf64', '-Ox']
+extra_compile_asm_args = {
+    'darwin': ['-DMACHO', '-D__x86_64__' if p64 else '', '-DPIC', '-DTURBO', '-f macho', '-Ox'],
+    'posix': ['-DELF', '-D__x86_64__'  if p64 else '', '-DPIC', '-DTURBO', '-f elf64' if p64 else '-f elf', '-Ox'],
+    'win32': ['-DWIN64' if p64 else '-DWIN32', '-D__x86_64__'  if p64 else '', '-DPIC', '-DTURBO', '-f win64' if p64 else '-f win32', '-Ox'],
+}
 
 extension = Extension("_dareblopy",
                       jpeg_turbo + jpeg_vanila + jpeg_turbo_simd + dareblopy + fsal + crc32c + zlib + protobuf + lz4,
@@ -310,9 +328,9 @@ extension = Extension("_dareblopy",
 extension.extra_compile_cpp_args = extra_compile_cpp_args[target_os]
 extension.extra_compile_c_args = extra_compile_c_args[target_os]
 extension.file_specific_definitions = file_specific_definitions
-extension.extra_compile_asm_args = extra_compile_asm_args
+extension.extra_compile_asm_args = extra_compile_asm_args[target_os]
 extension.asm = 'nasm'
-extension.asm_include = ['libs/libjpeg-turbo/simd/nasm/', 'libs/libjpeg-turbo/simd/x86_64/']
+extension.asm_include = ['libs/libjpeg-turbo/simd/nasm/', 'libs/libjpeg-turbo/simd/x86_64/' if p64 else 'libs/libjpeg-turbo/simd/i386/']
 
 setup(
     name='dareblopy',

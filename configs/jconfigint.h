@@ -5,7 +5,13 @@
 #undef inline
 
 /* How to obtain function inlining. */
+#if defined(_MSC_VER)
+#define INLINE  __inline
+#elif defined(__GNUC__)
 #define INLINE  __inline__ __attribute__((always_inline))
+#else
+#define INLINE inline
+#endif
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME  "libjpeg-turbo"
@@ -23,7 +29,9 @@
 #endif
 
 /* Define if your compiler has __builtin_ctzl() and sizeof(unsigned long) == sizeof(size_t). */
+#if defined(__GNUC__)
 #define HAVE_BUILTIN_CTZL
+#endif
 
 /* Define to 1 if you have the <intrin.h> header file. */
 /* #undef HAVE_INTRIN_H */

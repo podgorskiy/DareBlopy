@@ -168,6 +168,43 @@
 
 
 <div class="viewcode-block" id="data_loader"><a class="viewcode-back" href="../../dareblopy.html#dareblopy.data_loader.data_loader">[docs]</a><span class="k">def</span> <span class="nf">data_loader</span><span class="p">(</span><span class="n">yielder</span><span class="p">,</span> <span class="n">collator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iteration_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">queue_size</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Return an iterator that retrieves objects from yielder and passes them through collator.</span>
+
+<span class="sd">    Maintains a queue of given size and can run several worker threads. Intended to be used for asynchronous, buffered</span>
+<span class="sd">    data loading. Uses threads instead of multiprocessing, so tensors can be uploaded to GPU in collator.</span>
+
+<span class="sd">    There are many purposes that function :attr:`collator` can be used for, depending on your use case.</span>
+
+<span class="sd">    - Reading data from disk or db</span>
+<span class="sd">    - Data decoding, e.g. from JPEG.</span>
+<span class="sd">    - Augmenting data, flipping, rotating adding nose, etc.</span>
+<span class="sd">    - Concatenation of data, stacking to single ndarray, conversion to a tensor, uploading to GPU.</span>
+<span class="sd">    - Data generation.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Sequential order of batches is guaranteed only if number of workers is 1 (Default), otherwise batches might</span>
+<span class="sd">        be supplied out of order.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        yielder (iterator): Input data, returns batches.</span>
+<span class="sd">        collator (Callable, optional): Function for processing batches. Receives batch from yielder.</span>
+<span class="sd">        Can return object of any type. Defaults to None.</span>
+<span class="sd">        worker_count (int, optional): Number of workers, should be greater or equal to one. To process data in parallel</span>
+<span class="sd">            and fully load CPU :attr:`worker_count` should be close to the number of CPU cores. Defaults to one.</span>
+<span class="sd">        queue_size (int, optional): Maximum size of the queue, which is number of batches to buffer. Should be larger</span>
+<span class="sd">            than :attr:`worker_count`. Typically, one would want this to be as large as possible to amortize all disk</span>
+<span class="sd">            IO and computational costs. Downside of large value is increased RAM consumption. Defaults to 16.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Iterator: An object that produces a sequence of batches. :meth:`next()` method of the iterator will return</span>
+<span class="sd">        object that was produced by :attr:`collator` function</span>
+
+
+<span class="sd">    Raises:</span>
+<span class="sd">        StopIteration: When all data was iterated through. Stops the for loop.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
         <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">Lock</span><span class="p">()</span>

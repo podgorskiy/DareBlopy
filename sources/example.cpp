@@ -180,7 +180,7 @@ bool Records::FeatureDecode(std::size_t out_index, const std::string& key, const
 			const Int64List& values = feature.int64_list();
 			if (static_cast<size_t>(values.value_size()) != num)
 			{
-				throw runtime_error("Key: %s. Number of int64 values != expected. Values size: %zd but output shape: %s", key.c_str(), values.value_size(), Shape2str(shape).c_str());
+				throw runtime_error("Key: %s. Number of int64 values != expected. Values size: %zd but output shape: %s.", key.c_str(), values.value_size(), Shape2str(shape).c_str());
 			}
 			auto out_p = (int64_t*)out_ptr + offset;
 			memcpy(out_p, values.value().data(), num * sizeof(int64_t));
@@ -191,7 +191,7 @@ bool Records::FeatureDecode(std::size_t out_index, const std::string& key, const
 			const FloatList& values = feature.float_list();
 			if (static_cast<size_t>(values.value_size()) != num)
 			{
-				throw runtime_error("Key: %s. Number of float values != expected. Values size: %zd but output shape: %s", key.c_str(), values.value_size(), Shape2str(shape).c_str());
+				throw runtime_error("Key: %s. Number of float values != expected. Values size: %zd but output shape: %s.", key.c_str(), values.value_size(), Shape2str(shape).c_str());
 			}
 			auto out_p = (float*)out_ptr + offset;
 			memcpy(out_p, values.value().data(), num * sizeof(float));
@@ -202,7 +202,7 @@ bool Records::FeatureDecode(std::size_t out_index, const std::string& key, const
 			const BytesList& values = feature.bytes_list();
 			if (static_cast<size_t>(values.value_size()) != num)
 			{
-				throw runtime_error("Key: %s. Number of bytes values != expected. Values size: %zd but output shape: %s", key.c_str(), values.value_size(), Shape2str(shape).c_str());
+				throw runtime_error("Key: %s. Number of bytes values != expected. Values size: %zd but output shape: %s.", key.c_str(), values.value_size(), Shape2str(shape).c_str());
 			}
 			py::object* ptr = (py::object*)out_ptr + offset;
 
@@ -225,7 +225,7 @@ bool Records::FeatureDecode(std::size_t out_index, const std::string& key, const
 			}
 			if (size != num)
 			{
-				throw runtime_error("Key: %s. Number of uint8 values != expected. Values size: %zd but output shape: %s", key.c_str(), size, Shape2str(shape).c_str());
+				throw runtime_error("Key: %s. Number of uint8 values != expected. Values size: %zd but output shape: %s.", key.c_str(), size, Shape2str(shape).c_str());
 			}
 			uint8_t* ptr = (uint8_t*)out_ptr;
 			ptr += offset;
@@ -291,8 +291,8 @@ void Records::RecordParser::ParseSingleExampleInplace(const std::string& seriali
 			{
 				throw runtime_error(
 						//"Name: %s, "
-						"Feature: %s. Data types don't match. Expected type: %s,  Feature is: %s",
-						feature_config.key.c_str(), DataTypeString(feature_config.dtype), f.DebugString().c_str());
+						"Feature: %s. Data types don't match. Expected type: %s,  Feature is: %s.",
+						feature_config.key.c_str(), DataTypeString(feature_config.dtype), DataTypeString(Feature2DataType(f)));
 
 			}
 
@@ -306,7 +306,7 @@ void Records::RecordParser::ParseSingleExampleInplace(const std::string& seriali
 		else
 		{
 			// TODO, If the value is missing, copy the default
-			throw runtime_error("Feature %s data is missing. Default value is not implemented yet", feature_config.key.c_str());
+			throw runtime_error("Feature %s data is missing. Default value is not implemented yet.", feature_config.key.c_str());
 		}
 	}
 }
@@ -348,8 +348,8 @@ void Records::RecordParser::ParseSingleExampleImpl(const std::string& serialized
 			{
 				throw runtime_error(
 						//"Name: %s, "
-						"Feature: %s. Data types don't match. Expected type: %s,  Feature is: %s",
-						feature_config.key.c_str(), DataTypeString(feature_config.dtype), f.DebugString().c_str());
+						"Feature: %s. Data types don't match. Expected type: %s,  Feature is: %s.",
+						feature_config.key.c_str(), DataTypeString(feature_config.dtype), DataTypeString(Feature2DataType(f)));
 
 			}
 			FeatureDecode(batch_index, feature_config.key, feature_config.dtype, feature_config.shape, f, output[d]);
@@ -357,7 +357,7 @@ void Records::RecordParser::ParseSingleExampleImpl(const std::string& serialized
 		else
 		{
 			// TODO, If the value is missing, copy the default
-			throw runtime_error("Feature %s data is missing. Default value is not implemented yet", feature_config.key.c_str());
+			throw runtime_error("Feature %s data is missing. Default value is not implemented yet.", feature_config.key.c_str());
 		}
 	}
 }

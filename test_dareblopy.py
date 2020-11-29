@@ -38,6 +38,11 @@ class BasicFileOps(unittest.TestCase):
         file.seek(0)
         self.assertEqual(file.tell(), 0)
 
+    def test_does_not_exist(self):
+        fs = db.FileSystem()
+        file = fs.open("does_not_exist")
+        self.assertTrue(file is None)
+
     def test_zip_mounting(self):
         fs = db.FileSystem()
         zip = fs.open("test_utils/test_archive.zip", lockable=True)
@@ -59,6 +64,12 @@ class FileAndImageReadingOps(unittest.TestCase):
         b2 = db.open_as_bytes("test_utils/test_image.jpg")
         self.assertEqual(b1, b2)
 
+    def test_reading_to_bytes_does_not_exist(self):
+        with self.assertRaises(RuntimeError) as context:
+            db.open_as_bytes("does_not_exist")
+
+        self.assertTrue('No such file does_not_exist' == context.exception.args[0])
+
     def test_reading_to_numpy(self):
         image = PIL.Image.open("test_utils/test_image.jpg")
         ndarray1 = np.array(image)
@@ -77,6 +88,12 @@ class FileAndImageReadingOps(unittest.TestCase):
 
         self.assertTrue(mean_error < 0.5)
 
+    def test_reading_to_numpy_does_not_exist(self):
+        with self.assertRaises(RuntimeError) as context:
+            db.read_jpg_as_numpy("does_not_exist")
+
+        self.assertTrue('No such file does_not_exist' == context.exception.args[0])
+
     def test_reading_to_bytes_from_zip(self):
         archive = zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')
         s = archive.open('0.jpg')
@@ -89,6 +106,14 @@ class FileAndImageReadingOps(unittest.TestCase):
 
         self.assertEqual(b1, b2)
         self.assertEqual(b1, b3)
+
+    def test_reading_to_bytes_from_zip_does_not_exist(self):
+        archive = db.open_zip_archive("test_utils/test_image_archive.zip")
+
+        with self.assertRaises(RuntimeError) as context:
+            archive.open_as_bytes('does_not_exist')
+
+        self.assertEqual('Can\'t open file: does_not_exist', context.exception.args[0])
 
     def test_reading_to_numpy_from_zip(self):
         archive = zipfile.ZipFile("test_utils/test_image_archive.zip", 'r')
@@ -103,6 +128,12 @@ class FileAndImageReadingOps(unittest.TestCase):
 
 
 class TFRecordsReading(unittest.TestCase):
+    def test_reading_record_does_not_exist(self):
+        with self.assertRaises(RuntimeError) as context:
+            db.RecordReader('does_not_exist.tfrecords')
+
+        self.assertEqual('Can\'t create RecordReader. Can\'t find file: does_not_exist.tfrecords', context.exception.args[0])
+
     def test_reading_record(self):
         rr = db.RecordReader('test_utils/test-small-r00.tfrecords')
         self.assertIsNotNone(rr)
@@ -147,6 +178,23 @@ class TFRecordsReading(unittest.TestCase):
 
         self.assertEqual(records_gt, records)
 
+    def test_record_yielder_does_not_exist(self):
+        record_yielder = db.RecordYielderBasic(['does_not_exist-r00.tfrecords',
+                                                'does_not_exist-r01.tfrecords',
+                                                'does_not_exist-r02.tfrecords',
+                                                'does_not_exist-r03.tfrecords'])
+
+        self.assertIsNotNone(record_yielder)
+        records = []
+
+        with self.assertRaises(RuntimeError) as context:
+            while True:
+                try:
+                    batch = record_yielder.next_n(32)
+                    records += batch
+                except StopIteration:
+                    break
+
     def test_record_yielder_randomized(self):
         record_yielder = db.RecordYielderRandomized(['test_utils/test-small-r00.tfrecords',
                                                      'test_utils/test-small-r01.tfrecords',
@@ -189,7 +237,27 @@ class TFRecordsReading(unittest.TestCase):
             index.append(records_gt.index(record))
 
         # TODO: Check if sequence is random? For small `buffer_size` it's going to be random only at local scale.
-        print(index)
+        # print(index)
+
+    def test_record_yielder_randomized_does_not_exist(self):
+        record_yielder = db.RecordYielderRandomized(['does_not_exist-r00.tfrecords',
+                                                     'does_not_exist-r01.tfrecords',
+                                                     'does_not_exist-r02.tfrecords',
+                                                     'does_not_exist-r03.tfrecords'],
+                                                    buffer_size=16,
+                                                    seed=0,
+                                                    epoch=0)
+
+        self.assertIsNotNone(record_yielder)
+        records = []
+
+        with self.assertRaises(RuntimeError) as context:
+            while True:
+                try:
+                    batch = record_yielder.next_n(32)
+                    records += batch
+                except StopIteration:
+                    break
 
 
 class TFRecordsParsing(unittest.TestCase):
@@ -229,6 +297,34 @@ class TFRecordsParsing(unittest.TestCase):
                 np.frombuffer(data[0], dtype=np.uint8).reshape(3, 32, 32) == image_gt
             ))
 
+    def test_parsing_single_record_raise(self):
+        features = {
+            'does_not_exist': db.FixedLenFeature([], db.string)
+        }
+
+        parser = db.RecordParser(features)
+        self.assertIsNotNone(parser)
+
+        with self.assertRaises(RuntimeError) as context:
+            for record, image_gt in zip(self.records, self.images_gt):
+                shape, data = parser.parse_single_example(record)
+
+        self.assertEqual('Feature does_not_exist is required but could not be found.', context.exception.args[0])
+
+    def test_parsing_single_record_raise2(self):
+        features = {
+            'data': db.FixedLenFeature([], db.int64)
+        }
+
+        parser = db.RecordParser(features)
+        self.assertIsNotNone(parser)
+
+        with self.assertRaises(RuntimeError) as context:
+            for record, image_gt in zip(self.records, self.images_gt):
+                shape, data = parser.parse_single_example(record)
+
+        self.assertEqual('Feature: data. Data types don\'t match. Expected type: int64,  Feature is: string.', context.exception.args[0])
+
     def test_parsing_single_record_with_uint8_alternative_to_string(self):
         features_alternative = {
             'shape': db.FixedLenFeature([3], db.int64),
@@ -243,6 +339,21 @@ class TFRecordsParsing(unittest.TestCase):
 
             self.assertTrue(np.all(shape == [3, 32, 32]))
             self.assertTrue(np.all(data == image_gt))
+
+    def test_parsing_single_record_with_uint8_alternative_to_string_raise(self):
+        features_alternative = {
+            'shape': db.FixedLenFeature([3], db.int64),
+            'data': db.FixedLenFeature([3, 32, 64], db.uint8)
+        }
+
+        parser = db.RecordParser(features_alternative)
+        self.assertIsNotNone(parser)
+
+        with self.assertRaises(RuntimeError) as context:
+            for record, image_gt in zip(self.records, self.images_gt):
+                shape, data = parser.parse_single_example(record)
+
+        self.assertEqual('Key: data. Number of uint8 values != expected. Values size: 3072 but output shape: [3, 32, 64].', context.exception.args[0])
 
     def test_parsing_records_in_batch(self):
         features_alternative = {

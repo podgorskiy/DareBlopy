@@ -47,6 +47,9 @@ def compile(self, sources, output_dir=None, macros=None, include_dirs=None, debu
 
     return objects
 
+# Overwrite to enable multiprocess compilation
+CCompiler.compile = compile
+
 
 target_os = 'none'
 

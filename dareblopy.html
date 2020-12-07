@@ -215,26 +215,24 @@
 <li><p><cite>ZLIB</cite></p></li>
 </ul>
 <p>Example:</p>
-<blockquote>
-<div><p>record_reader = db.RecordReader(‘zlib_compressed.tfrecords’, db.Compression.ZLIB)
-record_reader = db.RecordReader(‘gzip_compressed.tfrecords’, db.Compression.GZIP)
-record_yielder = db.RecordYielderBasic([‘test_utils/test-small-gzip-r00.tfrecords’,</p>
-<blockquote>
-<div><p>‘test_utils/test-small-gzip-r01.tfrecords’,
-‘test_utils/test-small-gzip-r02.tfrecords’,
-‘test_utils/test-small-gzip-r03.tfrecords’], db.Compression.GZIP)</p>
-</div></blockquote>
-<dl class="simple">
-<dt>record_yielder_random = db.RecordYielderRandomized([‘test_utils/test-small-gzip-r00.tfrecords’,</dt><dd><p>‘test_utils/test-small-gzip-r01.tfrecords’,
-‘test_utils/test-small-gzip-r02.tfrecords’,
-‘test_utils/test-small-gzip-r03.tfrecords’],
-buffer_size=16,
-seed=0,
-epoch=0,
-db.Compression.GZIP)</p>
-</dd>
-</dl>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">record_reader</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordReader</span><span class="p">(</span><span class="s1">&#39;zlib_compressed.tfrecords&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Compression</span><span class="o">.</span><span class="n">ZLIB</span><span class="p">)</span>
+<span class="n">record_reader</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordReader</span><span class="p">(</span><span class="s1">&#39;gzip_compressed.tfrecords&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Compression</span><span class="o">.</span><span class="n">GZIP</span><span class="p">)</span>
+
+<span class="n">record_yielder</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordYielderBasic</span><span class="p">([</span><span class="s1">&#39;test_utils/test-small-gzip-r00.tfrecords&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;test_utils/test-small-gzip-r01.tfrecords&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;test_utils/test-small-gzip-r02.tfrecords&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;test_utils/test-small-gzip-r03.tfrecords&#39;</span><span class="p">],</span> <span class="n">db</span><span class="o">.</span><span class="n">Compression</span><span class="o">.</span><span class="n">GZIP</span><span class="p">)</span>
+
+<span class="n">record_yielder_random</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordYielderRandomized</span><span class="p">([</span><span class="s1">&#39;test_utils/test-small-gzip-r00.tfrecords&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;test_utils/test-small-gzip-r01.tfrecords&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;test_utils/test-small-gzip-r02.tfrecords&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;test_utils/test-small-gzip-r03.tfrecords&#39;</span><span class="p">],</span>
+                                                    <span class="n">buffer_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+                                                    <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                                    <span class="n">epoch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                                    <span class="n">db</span><span class="o">.</span><span class="n">Compression</span><span class="o">.</span><span class="n">GZIP</span><span class="p">)</span>
+</pre></div>
+</div>
 </div></blockquote>
 <p>Members:</p>
 <blockquote>
@@ -455,6 +453,41 @@ and a given shape. This eliminates any additional copying/casting.</p>
 <dt id="dareblopy.FixedLenFeature">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">FixedLenFeature</code><a class="headerlink" href="#dareblopy.FixedLenFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>An iterator that reads a list of tfrecord files and returns single or a batch of records).
+Does not support compressed tfrecords. Performs crc32 check of read data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#dareblopy.FixedLenFeature.shape" title="dareblopy.FixedLenFeature.shape"><strong>shape</strong></a> (<em>TensorShape</em>) – a <span class="xref std std-ref">.TensorShape</span> object that defines input data shape.</p></li>
+<li><p><a class="reference internal" href="#dareblopy.FixedLenFeature.dtype" title="dareblopy.FixedLenFeature.dtype"><strong>dtype</strong></a> (<a class="reference internal" href="#dareblopy.DataType" title="dareblopy.DataType"><em>DataType</em></a>) – a <span class="xref std std-ref">.DataType</span> object that defines input data type.</p></li>
+<li><p><a class="reference internal" href="#dareblopy.FixedLenFeature.default_value" title="dareblopy.FixedLenFeature.default_value"><strong>default_value</strong></a> (<em>object</em><em>, </em><em>optional</em>) – default value.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Contructor is overloaded and excepts either:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>shape</cite> (List[int]), <cite>datatype</cite> (DataType)</p></li>
+<li><p><cite>shape</cite> (List[int]), <cite>datatype</cite> (DataType), default_value (object)</p></li>
+</ul>
+</div></blockquote>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">features</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">FixedLenFeature</span><span class="p">([</span><span class="mi">3</span><span class="p">],</span> <span class="n">db</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">FixedLenFeature</span><span class="p">([],</span> <span class="n">db</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># or</span>
+
+<span class="n">features</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">FixedLenFeature</span><span class="p">([</span><span class="mi">3</span><span class="p">],</span> <span class="n">db</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">FixedLenFeature</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">],</span> <span class="n">db</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <dl class="py method">
 <dt id="dareblopy.FixedLenFeature.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dareblopy.FixedLenFeature.__init__" title="Permalink to this definition">¶</a></dt>
@@ -562,6 +595,26 @@ and a given shape. This eliminates any additional copying/casting.</p>
 <dt id="dareblopy.ParsedRecordYielderRandomized">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">ParsedRecordYielderRandomized</code><a class="headerlink" href="#dareblopy.ParsedRecordYielderRandomized" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<blockquote>
+<div><p>Generator that yields parsed records from a list of tfrecord files in a randomized way.</p>
+</div></blockquote>
+<p>ParsedRecordYielderRandomized gives slightly better performance over RecordYielderRandomized since it reduces data coping.</p>
+<blockquote>
+<div><dl>
+<dt>Args:</dt><dd><dl>
+<dt>parser (RecordParser): parser to be used to decode records.</dt><dd><p>filenames (List[str]): a list of filenames of the tfrecord files.
+buffer_size (Int): Size of the buffer is in number of samples. Reading of data from tfrecords to this buffer is sequential, but order of tfrecords is picked at random.</p>
+<blockquote>
+<div><p>Samples from this buffer are sampled at random. The more is the size of the buffer, the smaller are tf records, the more random is sample yielding.
+Similar to <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle">https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle</a></p>
+</div></blockquote>
+<p>seed (Int): seed for random number generator
+compression (Compression, optional): compression type. Default is Compression.None.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</div></blockquote>
 <dl class="py method">
 <dt id="dareblopy.ParsedRecordYielderRandomized.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n">_dareblopy.ParsedRecordYielderRandomized</span></em>, <em class="sig-param"><span class="n">parser</span><span class="p">:</span> <span class="n">object</span></em>, <em class="sig-param"><span class="n">filenames</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">buffer_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">seed</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">compression</span><span class="p">:</span> <span class="n">_dareblopy.Compression</span> <span class="o">=</span> <span class="default_value">Compression.NONE</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.ParsedRecordYielderRandomized.__init__" title="Permalink to this definition">¶</a></dt>
@@ -697,33 +750,15 @@ Does not support compressed tfrecords. Performs crc32 check of read data.</p>
 <dt id="dareblopy.RecordYielderBasic">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">RecordYielderBasic</code><a class="headerlink" href="#dareblopy.RecordYielderBasic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
-<p>An iterator that reads a list of tfrecord files and returns single or a batch of records).
-Does not support compressed tfrecords. Performs crc32 check of read data.</p>
+<p>Generator that yields records from a list of tfrecord files.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file</strong> (<a class="reference internal" href="#dareblopy.File" title="dareblopy.File"><em>File</em></a>) – a <span class="xref std std-ref">.File</span> fileobject.</p></li>
-<li><p><strong>filename</strong> (<em>str</em>) – a filename of the file.</p></li>
+<li><p><strong>filenames</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – a list of filenames of the tfrecord files.</p></li>
 <li><p><strong>compression</strong> (<a class="reference internal" href="#dareblopy.Compression" title="dareblopy.Compression"><em>Compression</em></a><em>, </em><em>optional</em>) – compression type. Default is Compression.None.</p></li>
 </ul>
 </dd>
 </dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Contructor is overloaded and excepts either <cite>file</cite> (File) either <cite>filename</cite> (str)</p>
-</div>
-<p class="rubric">Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">RecordReader</span><span class="p">(</span><span class="s1">&#39;test_utils/test-small-r00.tfrecords&#39;</span><span class="p">)</span>
-<span class="n">file_size</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">rr</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">()</span>
-<span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">rr</span><span class="p">)</span>
-</pre></div>
-</div>
-<p># Or for the compressed records:</p>
-<blockquote>
-<div><p>rr = db.RecordReader(‘test_utils/test-small-gzip-r00.tfrecords’, db.Compression.GZIP)
-file_size, data_size, entries = rr.get_metadata()
-records = list(rr)</p>
-</div></blockquote>
 <dl class="py method">
 <dt id="dareblopy.RecordYielderBasic.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n">_dareblopy.RecordYielderBasic</span></em>, <em class="sig-param"><span class="n">filenames</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">compression</span><span class="p">:</span> <span class="n">_dareblopy.Compression</span> <span class="o">=</span> <span class="default_value">Compression.NONE</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.RecordYielderBasic.__init__" title="Permalink to this definition">¶</a></dt>
@@ -750,6 +785,19 @@ records = list(rr)</p>
 <dt id="dareblopy.RecordYielderRandomized">
 <em class="property">class </em><code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">RecordYielderRandomized</code><a class="headerlink" href="#dareblopy.RecordYielderRandomized" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pybind11_builtins.pybind11_object</span></code></p>
+<p>Generator that yields records from a list of tfrecord files in a randomized way.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – a list of filenames of the tfrecord files.</p></li>
+<li><p><strong>buffer_size</strong> (<em>Int</em>) – Size of the buffer is in number of samples. Reading of data from tfrecords to this buffer is sequential, but order of tfrecords is picked at random.
+Samples from this buffer are sampled at random. The more is the size of the buffer, the smaller are tf records, the more random is sample yielding.
+Similar to <a class="reference external" href="https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle">https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle</a></p></li>
+<li><p><strong>seed</strong> (<em>Int</em>) – seed for random number generator</p></li>
+<li><p><strong>compression</strong> (<a class="reference internal" href="#dareblopy.Compression" title="dareblopy.Compression"><em>Compression</em></a><em>, </em><em>optional</em>) – compression type. Default is Compression.None.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="dareblopy.RecordYielderRandomized.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span><span class="p">:</span> <span class="n">_dareblopy.RecordYielderRandomized</span></em>, <em class="sig-param"><span class="n">filenames</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">buffer_size</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">seed</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">epoch</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">compression</span><span class="p">:</span> <span class="n">_dareblopy.Compression</span> <span class="o">=</span> <span class="default_value">Compression.NONE</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#dareblopy.RecordYielderRandomized.__init__" title="Permalink to this definition">¶</a></dt>
@@ -791,19 +839,42 @@ records = list(rr)</p>
 <dl class="py function">
 <dt id="dareblopy.open_as_bytes">
 <code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">open_as_bytes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg0</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.open_as_bytes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Opens file as bytes object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – filename</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="dareblopy.open_as_numpy_ubyte">
 <code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">open_as_numpy_ubyte</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">object</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.open_as_numpy_ubyte" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Opens file as numby array of type np.ubyte</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – filename</p></li>
+<li><p><strong>shape</strong> (<em>List</em><em>[</em><em>Int</em><em>]</em>) – shape</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt id="dareblopy.open_zip_archive">
 <code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">open_zip_archive</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#dareblopy.open_zip_archive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overloaded function.</p>
-<ol class="arabic simple">
-<li><p>open_zip_archive(arg0: str) -&gt; fsal::Archive</p></li>
+<ol class="arabic">
+<li><p>open_zip_archive(arg0: str) -&gt; fsal::Archive</p>
+<blockquote>
+<div><p>Opens zip archive</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filename (str): filename</p>
+</dd>
+</dl>
+</div></blockquote>
+</li>
 <li><p>open_zip_archive(arg0: fsal::File) -&gt; fsal::Archive</p></li>
 </ol>
 </dd></dl>
@@ -811,7 +882,16 @@ records = list(rr)</p>
 <dl class="py function">
 <dt id="dareblopy.read_jpg_as_numpy">
 <code class="sig-prename descclassname">dareblopy.</code><code class="sig-name descname">read_jpg_as_numpy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">use_turbo</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; object<a class="headerlink" href="#dareblopy.read_jpg_as_numpy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Opens jpeg file as numby array of type np.ubyte</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – filename</p></li>
+<li><p><strong>bool</strong><strong>)</strong> (<em>use_turbo</em>) – Uses libjpeg turbo if True</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="submodules">

@@ -21,8 +21,8 @@ def _handle_debugging():
     # if running debug session
     if os.path.exists("cmake-build-debug/"):
         print('Running Debugging session!')
-        # sys.path.insert(0, "cmake-build-debug/")
-        sys.path.insert(0, "cmake-build-release/")
+        sys.path.insert(0, "cmake-build-debug/")
+        # sys.path.insert(0, "cmake-build-release/")
 
 
 _handle_debugging()

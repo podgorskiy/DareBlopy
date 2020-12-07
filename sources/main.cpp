@@ -357,28 +357,11 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("parse_example", &Records::RecordParser::ParseExample);
 
 	py::class_<RecordYielderBasic>(m, "RecordYielderBasic", R"(
-	    An iterator that reads a list of tfrecord files and returns single or a batch of records).
-	    Does not support compressed tfrecords. Performs crc32 check of read data.
+	    Generator that yields records from a list of tfrecord files.
 
 	    Args:
-	    	    file (File): a :ref:`.File` fileobject.
-	    	    filename (str): a filename of the file.
+	    	    filenames (List[str]): a list of filenames of the tfrecord files.
 	    	    compression (Compression, optional): compression type. Default is Compression.None.
-
-	    Note:
-	    	    Contructor is overloaded and excepts either `file` (File) either `filename` (str)
-
-	    Example::
-
-	            rr = db.RecordReader('test_utils/test-small-r00.tfrecords')
-	            file_size, data_size, entries = rr.get_metadata()
-	            records = list(rr)
-
-	            # Or for the compressed records:
-
-	            rr = db.RecordReader('test_utils/test-small-gzip-r00.tfrecords', db.Compression.GZIP)
-	            file_size, data_size, entries = rr.get_metadata()
-	            records = list(rr)
 
 	)")
 			.def(py::init<std::vector<std::string>&, RecordReader::Compression>(), py::arg("filenames"), py::arg("compression") = RecordReader::None)
@@ -389,7 +372,18 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("__next__", &RecordYielderBasic::GetNext, py::return_value_policy::take_ownership)
 	        .def("next_n", &RecordYielderBasic::GetNextN, py::return_value_policy::take_ownership);
 
-	py::class_<RecordYielderRandomized>(m, "RecordYielderRandomized")
+	py::class_<RecordYielderRandomized>(m, "RecordYielderRandomized", R"(
+	    Generator that yields records from a list of tfrecord files in a randomized way.
+
+	    Args:
+	    	    filenames (List[str]): a list of filenames of the tfrecord files.
+	    	    buffer_size (Int): Size of the buffer is in number of samples. Reading of data from tfrecords to this buffer is sequential, but order of tfrecords is picked at random.
+	    	    	    	       Samples from this buffer are sampled at random. The more is the size of the buffer, the smaller are tf records, the more random is sample yielding.
+	                               Similar to https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle
+	    	    seed (Int): seed for random number generator
+	    	    compression (Compression, optional): compression type. Default is Compression.None.
+
+	)")
 			.def(py::init<std::vector<std::string>&, int, uint64_t, int, RecordReader::Compression>(),
 			        py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"), py::arg("compression") = RecordReader::None)
 			.def("__iter__", [](py::object& self)->py::object
@@ -399,7 +393,20 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("__next__", &RecordYielderRandomized::GetNext, py::return_value_policy::take_ownership)
 			.def("next_n", &RecordYielderRandomized::GetNextN, py::return_value_policy::take_ownership);
 
-	py::class_<ParsedRecordYielderRandomized>(m, "ParsedRecordYielderRandomized")
+	py::class_<ParsedRecordYielderRandomized>(m, "ParsedRecordYielderRandomized", R"(
+	    Generator that yields parsed records from a list of tfrecord files in a randomized way.
+        ParsedRecordYielderRandomized gives slightly better performance over RecordYielderRandomized since it reduces data coping.
+
+	    Args:
+                parser (RecordParser): parser to be used to decode records.
+	    	    filenames (List[str]): a list of filenames of the tfrecord files.
+	    	    buffer_size (Int): Size of the buffer is in number of samples. Reading of data from tfrecords to this buffer is sequential, but order of tfrecords is picked at random.
+	    	    	    	       Samples from this buffer are sampled at random. The more is the size of the buffer, the smaller are tf records, the more random is sample yielding.
+	                               Similar to https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle
+	    	    seed (Int): seed for random number generator
+	    	    compression (Compression, optional): compression type. Default is Compression.None.
+
+	)")
 			.def(py::init<py::object, std::vector<std::string>&, int, uint64_t, int, RecordReader::Compression>(),
 			        py::arg("parser"), py::arg("filenames"),  py::arg("buffer_size"),  py::arg("seed"),  py::arg("epoch"), py::arg("compression") = RecordReader::None)
 			.def("__iter__", [](py::object& self)->py::object
@@ -415,7 +422,12 @@ PYBIND11_MODULE(_dareblopy, m)
 		fsal::StdFile tmp_std;
 		auto fp = openfile(filename, tmp_std);
 		return read_as_bytes(fp);
-	});
+	}, R"(
+	    Opens file as bytes object
+
+	    Args:
+                filename (str): filename
+	)");
 
 	m.def("open_as_numpy_ubyte", [](const char* filename, py::object shape)
 	{
@@ -426,7 +438,13 @@ PYBIND11_MODULE(_dareblopy, m)
 			fp = openfile(filename, tmp_std);
 		}
 		return read_as_numpy_ubyte(fp, shape);
-	},  py::arg("filename"),  py::arg("shape").none(true) = py::none());
+	},  py::arg("filename"),  py::arg("shape").none(true) = py::none(), R"(
+	    Opens file as numby array of type np.ubyte
+
+	    Args:
+                filename (str): filename
+                shape (List[Int]): shape
+	)");
 
 	m.def("read_jpg_as_numpy", [](const char* filename, bool use_turbo)
 	{
@@ -437,7 +455,13 @@ PYBIND11_MODULE(_dareblopy, m)
 			fp = openfile(filename, tmp_std);
 		}
 		return read_jpg_as_numpy(fp, use_turbo);
-	},  py::arg("filename"),  py::arg("use_turbo") = false);
+	},  py::arg("filename"),  py::arg("use_turbo") = false, R"(
+	    Opens jpeg file as numby array of type np.ubyte
+
+	    Args:
+                filename (str): filename
+                use_turbo bool): Uses libjpeg turbo if True
+	)");
 
 	py::enum_<fsal::Mode>(m, "Mode", py::arithmetic())
 		.value("read", fsal::Mode::kRead)
@@ -465,7 +489,12 @@ PYBIND11_MODULE(_dareblopy, m)
 		auto zipreader = new fsal::ZipReader;
 		zipreader->OpenArchive(archive_file);
 		return new fsal::Archive(fsal::ArchiveReaderInterfacePtr(static_cast<fsal::ArchiveReaderInterface*>(zipreader)));
-	});
+	}, R"(
+	    Opens zip archive
+
+	    Args:
+                filename (str): filename
+	)");
 
 	m.def("open_zip_archive", [](fsal::File file)
 	{

@@ -20,10 +20,12 @@ import numpy as np
 
 
 class TFRecordsDatasetIterator:
-    def __init__(self, filenames, batch_size, buffer_size=1000, seed=None, epoch=0):
+    def __init__(self, filenames, batch_size, buffer_size=1000, seed=None, epoch=0, compression=None):
         if seed is None:
             seed = np.uint64(time.time() * 1000)
-        self.record_yielder = db.RecordYielderRandomized(filenames, buffer_size, seed, epoch)
+        if compression is None:
+            compression = db.Compression.NONE
+        self.record_yielder = db.RecordYielderRandomized(filenames, buffer_size, seed, epoch, compression)
         self.batch_size = batch_size
 
     def __iter__(self):
@@ -34,11 +36,13 @@ class TFRecordsDatasetIterator:
 
 
 class ParsedTFRecordsDatasetIterator:
-    def __init__(self, filenames, features, batch_size, buffer_size=1000, seed=None, epoch=0):
+    def __init__(self, filenames, features, batch_size, buffer_size=1000, seed=None, epoch=0, compression=None):
         if seed is None:
             seed = np.uint64(time.time() * 1000)
+        if compression is None:
+            compression = db.Compression.NONE
         self.parser = db.RecordParser(features, True)
-        self.record_yielder = db.ParsedRecordYielderRandomized(self.parser, filenames, buffer_size, seed, epoch)
+        self.record_yielder = db.ParsedRecordYielderRandomized(self.parser, filenames, buffer_size, seed, epoch, compression)
         self.batch_size = batch_size
 
     def __iter__(self):

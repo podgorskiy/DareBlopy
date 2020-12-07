@@ -202,11 +202,30 @@ PYBIND11_MODULE(_dareblopy, m)
 
 	    Possible values:
 
-            * `None` - default
+            * `NONE` - default
             * `GZIP`
             * `ZLIB`
+
+	    Example::
+
+                record_reader = db.RecordReader('zlib_compressed.tfrecords', db.Compression.ZLIB)
+                record_reader = db.RecordReader('gzip_compressed.tfrecords', db.Compression.GZIP)
+
+                record_yielder = db.RecordYielderBasic(['test_utils/test-small-gzip-r00.tfrecords',
+                                                        'test_utils/test-small-gzip-r01.tfrecords',
+                                                        'test_utils/test-small-gzip-r02.tfrecords',
+                                                        'test_utils/test-small-gzip-r03.tfrecords'], db.Compression.GZIP)
+
+                record_yielder_random = db.RecordYielderRandomized(['test_utils/test-small-gzip-r00.tfrecords',
+                                                                    'test_utils/test-small-gzip-r01.tfrecords',
+                                                                    'test_utils/test-small-gzip-r02.tfrecords',
+                                                                    'test_utils/test-small-gzip-r03.tfrecords'],
+                                                                    buffer_size=16,
+                                                                    seed=0,
+                                                                    epoch=0,
+                                                                    db.Compression.GZIP)
 	)")
-			.value("None", RecordReader::None)
+			.value("NONE", RecordReader::None)
 			.value("GZIP", RecordReader::GZIP)
 			.value("ZLIB", RecordReader::ZLIB)
 			.export_values();
@@ -218,18 +237,21 @@ PYBIND11_MODULE(_dareblopy, m)
 	    Args:
 	    	    file (File): a :ref:`.File` fileobject.
 	    	    filename (str): a filename of the file.
+	    	    compression (Compression, optional): compression type. Default is Compression.None.
 
 	    Note:
 	    	    Contructor is overloaded and excepts either `file` (File) either `filename` (str)
 
-	    Example:
+	    Example::
 
-	        ::
+	        rr = db.RecordReader('test_utils/test-small-r00.tfrecords')
+	        file_size, data_size, entries = rr.get_metadata()
+	        records = list(rr)
 
-	            rr = db.RecordReader('test_utils/test-small-r00.tfrecords')
-	            file_size, data_size, entries = rr.get_metadata()
-	            records = list(rr)
-
+	        # Or for the compressed records:
+	        rr = db.RecordReader('test_utils/test-small-gzip-r00.tfrecords', db.Compression.GZIP)
+	        file_size, data_size, entries = rr.get_metadata()
+	        records = list(rr)
 	)")
 			.def(py::init<fsal::File, RecordReader::Compression>(), py::arg("file"), py::arg("compression") = RecordReader::None)
 			.def(py::init<const std::string&, RecordReader::Compression>(), py::arg("filename"), py::arg("compression") = RecordReader::None)
@@ -289,7 +311,36 @@ PYBIND11_MODULE(_dareblopy, m)
 
 			)");
 
-	py::class_<Records::RecordParser::FixedLenFeature>(m, "FixedLenFeature")
+	py::class_<Records::RecordParser::FixedLenFeature>(m, "FixedLenFeature", R"(
+        An iterator that reads a list of tfrecord files and returns single or a batch of records).
+        Does not support compressed tfrecords. Performs crc32 check of read data.
+
+        Attributes:
+                shape (TensorShape): a :ref:`.TensorShape` object that defines input data shape.
+                dtype (DataType): a :ref:`.DataType` object that defines input data type.
+                default_value (object, optional): default value.
+
+        Note:
+                Contructor is overloaded and excepts either:
+
+                    *  `shape` (List[int]), `datatype` (DataType)
+                    *  `shape` (List[int]), `datatype` (DataType), default_value (object)
+
+        Example::
+
+            features = {
+                'shape': db.FixedLenFeature([3], db.int64),
+                'data': db.FixedLenFeature([], db.string)
+            }
+
+            # or
+
+            features = {
+                'shape': db.FixedLenFeature([3], db.int64),
+                'data': db.FixedLenFeature([3, 32, 32], db.uint8)
+            }
+
+	)")
 			.def(py::init())
 			.def(py::init<std::vector<size_t>, Records::DataType>())
 			.def(py::init<std::vector<size_t>, Records::DataType, py::object>())
@@ -305,7 +356,31 @@ PYBIND11_MODULE(_dareblopy, m)
 			.def("parse_single_example", &Records::RecordParser::ParseSingleExample)
 			.def("parse_example", &Records::RecordParser::ParseExample);
 
-	py::class_<RecordYielderBasic>(m, "RecordYielderBasic")
+	py::class_<RecordYielderBasic>(m, "RecordYielderBasic", R"(
+	    An iterator that reads a list of tfrecord files and returns single or a batch of records).
+	    Does not support compressed tfrecords. Performs crc32 check of read data.
+
+	    Args:
+	    	    file (File): a :ref:`.File` fileobject.
+	    	    filename (str): a filename of the file.
+	    	    compression (Compression, optional): compression type. Default is Compression.None.
+
+	    Note:
+	    	    Contructor is overloaded and excepts either `file` (File) either `filename` (str)
+
+	    Example::
+
+	            rr = db.RecordReader('test_utils/test-small-r00.tfrecords')
+	            file_size, data_size, entries = rr.get_metadata()
+	            records = list(rr)
+
+	            # Or for the compressed records:
+
+	            rr = db.RecordReader('test_utils/test-small-gzip-r00.tfrecords', db.Compression.GZIP)
+	            file_size, data_size, entries = rr.get_metadata()
+	            records = list(rr)
+
+	)")
 			.def(py::init<std::vector<std::string>&, RecordReader::Compression>(), py::arg("filenames"), py::arg("compression") = RecordReader::None)
 			.def("__iter__", [](py::object& self)->py::object
 			{

@@ -74,7 +74,7 @@ def prepare_tfrecords():
             tfr_writer.write(record)
         tfr_writer.close()
 
-        tfr_opt_c = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.GZIP)
+        tfr_opt_c = tf.python_io.TFRecordOptions(tf.python_io.TFRecordCompressionType.ZLIB)
         tfr_writer = tf.python_io.TFRecordWriter(part_path_small_gzip, tfr_opt_c)
         records_gzip = []
         for image in images_small:

@@ -262,7 +262,7 @@ class TFRecordsReading(unittest.TestCase):
 
 class TFRecordsReadingCompressed(unittest.TestCase):
     def test_reading_record(self):
-        rr = db.RecordReader('test_utils/test-small-gzip-r00.tfrecords', db.Compression.GZIP)
+        rr = db.RecordReader('test_utils/test-small-gzip-r00.tfrecords', db.Compression.ZLIB)
         self.assertIsNotNone(rr)
 
         file_size, data_size, entries = rr.get_metadata()
@@ -282,7 +282,7 @@ class TFRecordsReadingCompressed(unittest.TestCase):
         record_yielder = db.RecordYielderBasic(['test_utils/test-small-gzip-r00.tfrecords',
                                                 'test_utils/test-small-gzip-r01.tfrecords',
                                                 'test_utils/test-small-gzip-r02.tfrecords',
-                                                'test_utils/test-small-gzip-r03.tfrecords'], db.Compression.GZIP)
+                                                'test_utils/test-small-gzip-r03.tfrecords'], db.Compression.ZLIB)
 
         self.assertIsNotNone(record_yielder)
         records = []
